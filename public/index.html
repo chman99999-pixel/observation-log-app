@@ -134,6 +134,8 @@ const logout = () => { state.user=null; render(); };
 const generate = async () => {
   const activity=document.getElementById('activity').value, needAction=document.getElementById('needAction').checked;
   if(!activity) return alert('활동내용을 입력해주세요.');
+  lastActivity = activity;
+  lastNeedAction = needAction;
   state.loading=true; render();
   try {
     const res = await fetch('/api/generate', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({activity,needAction})});
