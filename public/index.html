@@ -156,7 +156,8 @@ const showResult = (err,obs,act) => {
     r.innerHTML = err?`<div class="mt-6 bg-red-50 border-2 border-red-300 rounded-lg p-4 text-red-800">${err}</div>`:
     `<div class="mt-6 space-y-4">
       <div class="bg-white rounded-lg p-4 border-2 border-green-200"><div class="flex justify-between items-center mb-2"><h3 class="font-bold">관찰일지</h3><button onclick="copyText(\`${obs.replace(/`/g,"\\`")}\`)" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm">📋복사</button></div><div class="bg-gray-50 p-3 rounded border">${obs}</div></div>
-      ${act?`<div class="bg-white rounded-lg p-4 border-2 border-orange-200"><div class="flex justify-between items-center mb-2"><h3 class="font-bold">처리사항</h3><button onclick="copyText(\`${act.replace(/`/g,"\\`")}\`)" class="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm">📋복사</button></div><div class="bg-gray-50 p-3 rounded border">${act}</div></div>`:''}
+${act?`<div class="bg-white rounded-lg p-4 border-2 border-orange-200"><div class="flex justify-between items-center mb-2"><h3 class="font-bold">처리사항</h3><button onclick="copyText(\`${act.replace(/`/g,"\\`")}\`)" class="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm">📋복사</button></div><div class="bg-gray-50 p-3 rounded border">${act}</div></div>`:''}
+      <div class="flex justify-center pt-4"><button onclick="generate()" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold">다시 작성하기</button></div>
     </div>`;
   },100);
 };
