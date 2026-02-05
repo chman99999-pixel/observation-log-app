@@ -75,4 +75,99 @@ const renderUser = () => {
           <div class="flex items-center gap-3"><span class="text-3xl">📝</span><h1 class="text-xl font-bold">일지 작성 도우미</h1></div>
           <div class="flex items-center gap-2"><span class="text-sm">${getGreeting()}</span><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div>
         </div>
-        <div class="mb-6 p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-in​​​​​​​​​​​​​​​​
+        <div class="mb-6 p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50 rounded-lg border border-indigo-100">
+          <p class="text-sm text-gray-700 text-center">감사합니다 센터 선생님들의 업무부담을 줄여드리기 위해 개발된 앱입니다.</p>
+          <p class="text-xs text-gray-500 text-center mt-2">🙏 모든 선생님이 원활하게 사용하실 수 있도록, 하루 5회 이내로 사용해 주시면 감사하겠습니다.</p>
+          <p class="text-xs text-indigo-500 text-center mt-2">✦ 개발자: 천만석 ✦</p>
+        </div>
+        <div class="space-y-4">
+          <div><label class="block text-sm font-semibold mb-2">활동내용 <span class="font-normal text-gray-500">(관찰내용과 특이사항을 자유롭게 입력)</span></label><textarea id="activity" class="w-full px-4 py-3 border rounded-lg h-40" ${state.loading?'disabled':''}></textarea></div>
+          <div class="flex items-center gap-2"><input type="checkbox" id="needAction" class="w-5 h-5"><label for="needAction" class="text-sm">처리사항 포함</label></div>
+          <button onclick="generate()" class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-4 rounded-lg" ${state.loading?'disabled':''}>${state.loading?'⏳ 작성 중...':'관찰일지 작성하기'}</button>
+        </div>
+        <div id="result"></div>
+      </div>
+      <p class="text-center mt-6 text-sm text-gray-600">💙 감사합니다 주간활동센터</p>
+    </div>`;
+};
+
+const renderAdmin = () => {
+  const logs = state.logs, users = state.users.filter(u=>u.role==='user');
+  const si = {mb:(JSON.stringify(logs).length/1024/1024).toFixed(2), pct:Math.min(100,JSON.stringify(logs).length/(5*1024*1024)*100).toFixed(1)};
+  document.getElementById('app').innerHTML = `
+    <div class="p-4 max-w-6xl mx-auto">
+      <div class="bg-white rounded-2xl shadow-xl p-6">
+        <div class="flex justify-between items-center mb-6 flex-wrap gap-2">
+          <div class="flex items-center gap-3"><span class="text-3xl">📝</span><div><h1 class="text-xl font-bold">관리자 페이지</h1><p class="text-sm text-gray-500">${state.user.name}님</p></div></div>
+          <button onclick="logout()" class="px-4 py-2 bg-gray-100 rounded-lg">🚪 로그아웃</button>
+        </div>
+        <div class="flex gap-2 mb-6 flex-wrap">
+          <button onclick="state.tab='logs';render()" class="px-4 py-2 rounded-lg ${state.tab==='logs'?'bg-indigo-600 text-white':'bg-gray-100'}">📋 로그</button>
+          <button onclick="state.tab='users';render()" class="px-4 py-2 rounded-lg ${state.tab==='users'?'bg-indigo-600 text-white':'bg-gray-100'}">👥 사용자</button>
+        </div>
+        ${state.tab==='logs'?`
+          <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+            <h2 class="font-bold">로그 (${logs.length}건)</h2>
+            <div class="flex gap-2">
+              <button onclick="exportJSON()" class="px-3 py-2 bg-blue-600 text-white rounded text-sm">💾 백업</button>
+              <label class="px-3 py-2 bg-purple-600 text-white rounded text-sm cursor-pointer">📂 복원<input type="file" accept=".json" onchange="uploadJSON(event)" class="hidden"/></label>
+            </div>
+          </div>
+          <div class="bg-indigo-50 p-3 rounded-lg mb-4"><div class="flex justify-between text-sm"><span>저장공간</span><span>${si.mb}MB/5MB</span></div><div class="mt-2 h-2 bg-indigo-200 rounded-full"><div class="h-full rounded-full ${+si.pct>80?'bg-red-500':'bg-indigo-600'}" style="width:${si.pct}%"></div></div></div>
+          <div class="mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">${users.map(u=>`<div class="bg-gray-50 p-3 rounded"><p class="font-medium">${u.name}</p><p class="text-sm text-gray-500">요청: ${logs.filter(l=>l.userId===u.id).length}회</p></div>`).join('')}</div>
+          <div class="space-y-3">${logs.slice(0,20).map(l=>`<div class="bg-gray-50 border rounded-lg p-4"><div class="flex flex-wrap gap-2 text-sm mb-2"><span class="text-indigo-600">${l.date}</span><span class="text-gray-500">${l.time}</span><span class="font-medium">${l.userName}</span></div><div class="space-y-2 text-sm"><div><p class="text-xs text-gray-500">입력</p><p class="bg-white p-2 rounded border mt-1">${l.input}</p></div><div><p class="text-xs text-green-600">관찰일지</p><p class="bg-white p-2 rounded border border-green-200 mt-1">${l.observation}</p></div>${l.action?`<div><p class="text-xs text-orange-600">처리사항</p><p class="bg-white p-2 rounded border border-orange-200 mt-1">${l.action}</p></div>`:''}</div></div>`).join('')}</div>
+        `:`
+          <div class="bg-gray-50 p-4 rounded-lg mb-4"><h3 class="font-medium mb-3">새 사용자</h3><div class="flex flex-wrap gap-2"><input id="newId" placeholder="아이디" class="px-3 py-2 border rounded flex-1 min-w-20"><input id="newPw" placeholder="비밀번호" class="px-3 py-2 border rounded flex-1 min-w-20"><input id="newName" placeholder="이름" class="px-3 py-2 border rounded flex-1 min-w-20"><button onclick="addUser()" class="px-4 py-2 bg-indigo-600 text-white rounded">추가</button></div></div>
+          <div class="space-y-2">${state.users.map(u=>`<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg flex-wrap gap-2"><div><span class="font-medium">${u.name}</span><span class="text-gray-500 text-sm ml-2">(${u.id})</span><span class="text-gray-400 text-sm ml-2">pw:${u.password}</span>${u.role==='admin'?'<span class="ml-2 px-2 bg-indigo-100 text-indigo-700 text-xs rounded">관리자</span>':''}</div>${u.role!=='admin'?`<button onclick="deleteUser('${u.id}')" class="text-red-600 text-sm">🗑️삭제</button>`:''}</div>`).join('')}</div>
+        `}
+      </div>
+    </div>`;
+};
+
+const login = () => {
+  const id=document.getElementById('loginId').value, pw=document.getElementById('loginPw').value;
+  const user=state.users.find(u=>u.id===id&&u.password===pw);
+  if(user){state.user=user;render();}else{document.getElementById('loginErr').classList.remove('hidden');}
+};
+const logout = () => { state.user=null; render(); };
+
+const generate = async () => {
+  const activity=document.getElementById('activity').value, needAction=document.getElementById('needAction').checked;
+  if(!activity) return alert('활동내용을 입력해주세요.');
+  state.loading=true; render();
+  try {
+    const res = await fetch('/api/generate', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({activity,needAction})});
+    const data = await res.json();
+    if(data.error){showResult('⚠️ '+data.error,'','');state.loading=false;render();return;}
+    let obs=data.result||'', act='';
+    if(data.result.includes('[관찰일지]')&&data.result.includes('[처리사항]')){
+      obs=(data.result.match(/\[관찰일지\]\s*([\s\S]*?)\s*\[처리사항]/)||[])[1]?.trim()||'';
+      act=(data.result.match(/\[처리사항\]\s*([\s\S]*)$/)||[])[1]?.trim()||'';
+    }else if(data.result.includes('[관찰일지]')){obs=data.result.replace('[관찰일지]','').trim();}
+    state.logs.unshift({id:Date.now(),date:new Date().toLocaleDateString('ko-KR'),time:new Date().toLocaleTimeString('ko-KR'),userId:state.user.id,userName:state.user.name,input:activity,observation:obs,action:act});
+    save(); showResult('',obs,act);
+  }catch(e){showResult('⚠️ 네트워크 오류','','');}
+  state.loading=false; render();
+};
+
+const showResult = (err,obs,act) => {
+  setTimeout(()=>{
+    const r=document.getElementById('result'); if(!r)return;
+    r.innerHTML = err?`<div class="mt-6 bg-red-50 border-2 border-red-300 rounded-lg p-4 text-red-800">${err}</div>`:
+    `<div class="mt-6 space-y-4">
+      <div class="bg-white rounded-lg p-4 border-2 border-green-200"><div class="flex justify-between items-center mb-2"><h3 class="font-bold">관찰일지</h3><button onclick="copyText(\`${obs.replace(/`/g,"\\`")}\`)" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm">📋복사</button></div><div class="bg-gray-50 p-3 rounded border">${obs}</div></div>
+      ${act?`<div class="bg-white rounded-lg p-4 border-2 border-orange-200"><div class="flex justify-between items-center mb-2"><h3 class="font-bold">처리사항</h3><button onclick="copyText(\`${act.replace(/`/g,"\\`")}\`)" class="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm">📋복사</button></div><div class="bg-gray-50 p-3 rounded border">${act}</div></div>`:''}
+    </div>`;
+  },100);
+};
+
+const copyText = async(t)=>{try{await navigator.clipboard.writeText(t);alert('복사완료!');}catch{alert('복사실패');}};
+const addUser = ()=>{const id=document.getElementById('newId').value,pw=document.getElementById('newPw').value,name=document.getElementById('newName').value;if(!id||!pw||!name)return alert('모두 입력');if(state.users.find(u=>u.id===id))return alert('중복');state.users.push({id,password:pw,name,role:'user'});save();render();};
+const deleteUser = (id)=>{if(confirm('삭제?')){state.users=state.users.filter(u=>u.id!==id);save();render();}};
+const exportJSON = ()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({logs:state.logs},null,2)],{type:'application/json'}));a.download=`백업_${new Date().toISOString().split('T')[0]}.json`;a.click();};
+const uploadJSON = (e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>{try{const d=JSON.parse(ev.target.result);if(d.logs&&confirm(`${d.logs.length}건 복원?`)){const ids=new Set(state.logs.map(l=>l.id));state.logs=[...d.logs.filter(l=>!ids.has(l.id)),...state.logs].sort((a,b)=>b.id-a.id);save();render();alert('완료');}}catch{alert('오류');}};r.readAsText(f);};
+
+render();
+</script>
+</body>
+</html>
