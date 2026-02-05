@@ -7,26 +7,26 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-<div id="app"></div>
+<div id="app"><div class="flex items-center justify-center min-h-screen"><p>로딩 중...</p></div></div>
 <script>
-const USERS = [
-  {id:'chman99',password:'suck88',name:'관리자',role:'admin'},
-  {id:'천만석',password:'1234',name:'천만석',role:'user'},
-  {id:'박효숙',password:'5678',name:'박효숙',role:'user'},
-  {id:'송지안',password:'1111',name:'송지안',role:'user'}
-];
+let state = { user: null, users: [], logs: [], loading: false, tab: 'logs', dataLoaded: false };
 
-let state = {
-  user: null,
-  users: JSON.parse(localStorage.getItem('obs_users')) || USERS,
-  logs: JSON.parse(localStorage.getItem('obs_logs')) || [],
-  loading: false,
-  tab: 'logs'
+const api = async (action, body = null) => {
+  const res = await fetch(`/api/db?action=${action}`, {
+    method: body ? 'POST' : 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : null
+  });
+  return res.json();
 };
 
-const save = () => {
-  localStorage.setItem('obs_users', JSON.stringify(state.users));
-  localStorage.setItem('obs_logs', JSON.stringify(state.logs));
+const loadData = async () => {
+  try {
+    state.users = await api('getUsers');
+    state.logs = await api('getLogs');
+    state.dataLoaded = true;
+  } catch (e) { console.error(e); state.users = []; state.logs = []; state.dataLoaded = true; }
+  render();
 };
 
 const getGreeting = () => {
@@ -38,6 +38,7 @@ const getGreeting = () => {
 };
 
 const render = () => {
+  if (!state.dataLoaded) return;
   const app = document.getElementById('app');
   if(!state.user) {
     app.innerHTML = `
@@ -93,7 +94,6 @@ const renderUser = () => {
 
 const renderAdmin = () => {
   const logs = state.logs, users = state.users.filter(u=>u.role==='user');
-  const si = {mb:(JSON.stringify(logs).length/1024/1024).toFixed(2), pct:Math.min(100,JSON.stringify(logs).length/(5*1024*1024)*100).toFixed(1)};
   document.getElementById('app').innerHTML = `
     <div class="p-4 max-w-6xl mx-auto">
       <div class="bg-white rounded-2xl shadow-xl p-6">
@@ -106,16 +106,9 @@ const renderAdmin = () => {
           <button onclick="state.tab='users';render()" class="px-4 py-2 rounded-lg ${state.tab==='users'?'bg-indigo-600 text-white':'bg-gray-100'}">👥 사용자</button>
         </div>
         ${state.tab==='logs'?`
-          <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
-            <h2 class="font-bold">로그 (${logs.length}건)</h2>
-            <div class="flex gap-2">
-              <button onclick="exportJSON()" class="px-3 py-2 bg-blue-600 text-white rounded text-sm">💾 백업</button>
-              <label class="px-3 py-2 bg-purple-600 text-white rounded text-sm cursor-pointer">📂 복원<input type="file" accept=".json" onchange="uploadJSON(event)" class="hidden"/></label>
-            </div>
-          </div>
-          <div class="bg-indigo-50 p-3 rounded-lg mb-4"><div class="flex justify-between text-sm"><span>저장공간</span><span>${si.mb}MB/5MB</span></div><div class="mt-2 h-2 bg-indigo-200 rounded-full"><div class="h-full rounded-full ${+si.pct>80?'bg-red-500':'bg-indigo-600'}" style="width:${si.pct}%"></div></div></div>
-          <div class="mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">${users.map(u=>`<div class="bg-gray-50 p-3 rounded"><p class="font-medium">${u.name}</p><p class="text-sm text-gray-500">요청: ${logs.filter(l=>l.userId===u.id).length}회</p></div>`).join('')}</div>
-          <div class="space-y-3">${logs.slice(0,20).map(l=>`<div class="bg-gray-50 border rounded-lg p-4"><div class="flex flex-wrap gap-2 text-sm mb-2"><span class="text-indigo-600">${l.date}</span><span class="text-gray-500">${l.time}</span><span class="font-medium">${l.userName}</span></div><div class="space-y-2 text-sm"><div><p class="text-xs text-gray-500">입력</p><p class="bg-white p-2 rounded border mt-1">${l.input}</p></div><div><p class="text-xs text-green-600">관찰일지</p><p class="bg-white p-2 rounded border border-green-200 mt-1">${l.observation}</p></div>${l.action?`<div><p class="text-xs text-orange-600">처리사항</p><p class="bg-white p-2 rounded border border-orange-200 mt-1">${l.action}</p></div>`:''}</div></div>`).join('')}</div>
+          <div class="mb-4 flex justify-between items-center"><h2 class="font-bold">로그 (${logs.length}건)</h2><button onclick="loadData()" class="px-3 py-1 bg-gray-200 rounded text-sm">🔄 새로고침</button></div>
+          <div class="mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">${users.map(u=>`<div class="bg-gray-50 p-3 rounded"><p class="font-medium">${u.name}</p><p class="text-sm text-gray-500">요청: ${logs.filter(l=>l.user_id===u.id).length}회</p></div>`).join('')}</div>
+          <div class="space-y-3">${logs.slice(0,30).map(l=>`<div class="bg-gray-50 border rounded-lg p-4"><div class="flex flex-wrap gap-2 text-sm mb-2"><span class="text-indigo-600">${l.date}</span><span class="text-gray-500">${l.time}</span><span class="font-medium">${l.user_name}</span></div><div class="space-y-2 text-sm"><div><p class="text-xs text-gray-500">입력</p><p class="bg-white p-2 rounded border mt-1">${l.input||''}</p></div><div><p class="text-xs text-green-600">관찰일지</p><p class="bg-white p-2 rounded border border-green-200 mt-1">${l.observation||''}</p></div>${l.action?`<div><p class="text-xs text-orange-600">처리사항</p><p class="bg-white p-2 rounded border border-orange-200 mt-1">${l.action}</p></div>`:''}</div></div>`).join('')}${logs.length===0?'<p class="text-center py-8 text-gray-500">로그가 없습니다.</p>':''}</div>
         `:`
           <div class="bg-gray-50 p-4 rounded-lg mb-4"><h3 class="font-medium mb-3">새 사용자</h3><div class="flex flex-wrap gap-2"><input id="newId" placeholder="아이디" class="px-3 py-2 border rounded flex-1 min-w-20"><input id="newPw" placeholder="비밀번호" class="px-3 py-2 border rounded flex-1 min-w-20"><input id="newName" placeholder="이름" class="px-3 py-2 border rounded flex-1 min-w-20"><button onclick="addUser()" class="px-4 py-2 bg-indigo-600 text-white rounded">추가</button></div></div>
           <div class="space-y-2">${state.users.map(u=>`<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg flex-wrap gap-2"><div><span class="font-medium">${u.name}</span><span class="text-gray-500 text-sm ml-2">(${u.id})</span><span class="text-gray-400 text-sm ml-2">pw:${u.password}</span>${u.role==='admin'?'<span class="ml-2 px-2 bg-indigo-100 text-indigo-700 text-xs rounded">관리자</span>':''}</div>${u.role!=='admin'?`<button onclick="deleteUser('${u.id}')" class="text-red-600 text-sm">🗑️삭제</button>`:''}</div>`).join('')}</div>
@@ -129,7 +122,11 @@ const login = () => {
   const user=state.users.find(u=>u.id===id&&u.password===pw);
   if(user){state.user=user;render();}else{document.getElementById('loginErr').classList.remove('hidden');}
 };
+
 const logout = () => { state.user=null; render(); };
+
+let lastActivity = '';
+let lastNeedAction = false;
 
 const generate = async () => {
   const activity=document.getElementById('activity').value, needAction=document.getElementById('needAction').checked;
@@ -137,6 +134,8 @@ const generate = async () => {
   lastActivity = activity;
   lastNeedAction = needAction;
   state.loading=true; render();
+  document.getElementById('activity').value = activity;
+  document.getElementById('needAction').checked = needAction;
   try {
     const res = await fetch('/api/generate', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({activity,needAction})});
     const data = await res.json();
@@ -146,30 +145,16 @@ const generate = async () => {
       obs=(data.result.match(/\[관찰일지\]\s*([\s\S]*?)\s*\[처리사항]/)||[])[1]?.trim()||'';
       act=(data.result.match(/\[처리사항\]\s*([\s\S]*)$/)||[])[1]?.trim()||'';
     }else if(data.result.includes('[관찰일지]')){obs=data.result.replace('[관찰일지]','').trim();}
-    state.logs.unshift({id:Date.now(),date:new Date().toLocaleDateString('ko-KR'),time:new Date().toLocaleTimeString('ko-KR'),userId:state.user.id,userName:state.user.name,input:activity,observation:obs,action:act});
-    save(); showResult('',obs,act);
-  }catch(e){showResult('⚠️ 네트워크 오류','','');}
+    
+    const logData = {id:Date.now(),date:new Date().toLocaleDateString('ko-KR'),time:new Date().toLocaleTimeString('ko-KR'),user_id:state.user.id,user_name:state.user.name,input:activity,observation:obs,action:act};
+    await api('addLog', logData);
+    state.logs.unshift(logData);
+    showResult('',obs,act);
+  }catch(e){showResult('⚠️ 네트워크 오류: '+e.message,'','');}
   state.loading=false; render();
+  document.getElementById('activity').value = lastActivity;
+  document.getElementById('needAction').checked = lastNeedAction;
 };
-
-const showResult = (err,obs,act) => {
-  setTimeout(()=>{
-    const r=document.getElementById('result'); if(!r)return;
-    r.innerHTML = err?`<div class="mt-6 bg-red-50 border-2 border-red-300 rounded-lg p-4 text-red-800">${err}</div>`:
-    `<div class="mt-6 space-y-4">
-      <div class="bg-white rounded-lg p-4 border-2 border-green-200"><div class="flex justify-between items-center mb-2"><h3 class="font-bold">관찰일지</h3><button onclick="copyText(\`${obs.replace(/`/g,"\\`")}\`)" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm">📋복사</button></div><div class="bg-gray-50 p-3 rounded border">${obs}</div></div>
-${act?`<div class="bg-white rounded-lg p-4 border-2 border-orange-200"><div class="flex justify-between items-center mb-2"><h3 class="font-bold">처리사항</h3><button onclick="copyText(\`${act.replace(/`/g,"\\`")}\`)" class="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm">📋복사</button></div><div class="bg-gray-50 p-3 rounded border">${act}</div></div>`:''}
-     <div class="flex justify-center pt-4"><button onclick="regenerate()" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold">다시 작성하기</button></div>
-    </div>`;
-  },100);
-};
-
-const copyText = async(t)=>{try{await navigator.clipboard.writeText(t);alert('복사완료!');}catch{alert('복사실패');}};
-const addUser = ()=>{const id=document.getElementById('newId').value,pw=document.getElementById('newPw').value,name=document.getElementById('newName').value;if(!id||!pw||!name)return alert('모두 입력');if(state.users.find(u=>u.id===id))return alert('중복');state.users.push({id,password:pw,name,role:'user'});save();render();};
-const deleteUser = (id)=>{if(confirm('삭제?')){state.users=state.users.filter(u=>u.id!==id);save();render();}};
-const exportJSON = ()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({logs:state.logs},null,2)],{type:'application/json'}));a.download=`백업_${new Date().toISOString().split('T')[0]}.json`;a.click();};
-let lastActivity = '';
-let lastNeedAction = false;
 
 const regenerate = () => {
   if(!lastActivity) return alert('이전 입력 내용이 없습니다.');
@@ -177,9 +162,39 @@ const regenerate = () => {
   document.getElementById('needAction').checked = lastNeedAction;
   generate();
 };
-  const uploadJSON = (e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>{try{const d=JSON.parse(ev.target.result);if(d.logs&&confirm(`${d.logs.length}건 복원?`)){const ids=new Set(state.logs.map(l=>l.id));state.logs=[...d.logs.filter(l=>!ids.has(l.id)),...state.logs].sort((a,b)=>b.id-a.id);save();render();alert('완료');}}catch{alert('오류');}};r.readAsText(f);};
 
-render();
+const showResult = (err,obs,act) => {
+  setTimeout(()=>{
+    const r=document.getElementById('result'); if(!r)return;
+    r.innerHTML = err?`<div class="mt-6 bg-red-50 border-2 border-red-300 rounded-lg p-4 text-red-800">${err}</div>`:
+    `<div class="mt-6 space-y-4">
+      <div class="bg-white rounded-lg p-4 border-2 border-green-200"><div class="flex justify-between items-center mb-2"><h3 class="font-bold">관찰일지</h3><button onclick="copyText(\`${obs.replace(/`/g,"\\`").replace(/\\/g,"\\\\")}\`)" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm">📋복사</button></div><div class="bg-gray-50 p-3 rounded border">${obs}</div></div>
+      ${act?`<div class="bg-white rounded-lg p-4 border-2 border-orange-200"><div class="flex justify-between items-center mb-2"><h3 class="font-bold">처리사항</h3><button onclick="copyText(\`${act.replace(/`/g,"\\`").replace(/\\/g,"\\\\")}\`)" class="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm">📋복사</button></div><div class="bg-gray-50 p-3 rounded border">${act}</div></div>`:''}
+      <div class="flex justify-center pt-4"><button onclick="regenerate()" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold">다시 작성하기</button></div>
+    </div>`;
+  },100);
+};
+
+const copyText = async(t)=>{try{await navigator.clipboard.writeText(t);alert('복사완료!');}catch{alert('복사실패');}};
+
+const addUser = async()=>{
+  const id=document.getElementById('newId').value,pw=document.getElementById('newPw').value,name=document.getElementById('newName').value;
+  if(!id||!pw||!name)return alert('모두 입력');
+  if(state.users.find(u=>u.id===id))return alert('중복');
+  await api('addUser', {id, password:pw, name, role:'user'});
+  state.users.push({id,password:pw,name,role:'user'});
+  render();
+};
+
+const deleteUser = async(id)=>{
+  if(confirm('삭제?')){
+    await api('deleteUser', {id});
+    state.users=state.users.filter(u=>u.id!==id);
+    render();
+  }
+};
+
+loadData();
 </script>
 </body>
 </html>
