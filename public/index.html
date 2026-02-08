@@ -1,266 +1,77 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>일지 작성 도우미</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-<div id="app"><div class="flex items-center justify-center min-h-screen"><p>로딩 중...</p></div></div>
-<script>
-let state = { user: null, users: [], logs: [], loading: false, tab: 'logs', dataLoaded: false };
+import { createClient } from '@supabase/supabase-js';
 
-const api = async (action, body = null) => {
-  const res = await fetch(`/api/db?action=${action}`, {
-    method: body ? 'POST' : 'GET',
-    headers: { 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : null
-  });
-  return res.json();
-};
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
-const loadData = async () => {
+export default async function handler(req, res) {
+  const { action } = req.query;
+
   try {
-    state.users = await api('getUsers');
-    state.logs = await api('getLogs');
-    state.dataLoaded = true;
-  } catch (e) { console.error(e); state.users = []; state.logs = []; state.dataLoaded = true; }
-  render();
-};
+    // 사용자 관련
+    if (action === 'getUsers') {
+      const { data } = await supabase.from('users').select('*').order('name');
+      return res.json(data || []);
+    }
 
-const getGreeting = () => {
-  const h = new Date().getHours(), n = state.user.name;
-  if(h>=6&&h<12) return `좋은 아침이에요, ${n} 선생님 ☀️`;
-  if(h>=12&&h<18) return `오늘도 힘내세요, ${n} 선생님 💪`;
-  if(h>=18&&h<22) return `오늘 하루도 수고하셨어요, ${n} 선생님 🌙`;
-  return `늦은 밤 고생이 많으세요, ${n} 선생님 🌜`;
-};
+    if (action === 'addUser') {
+      const { id, password, name, role, organization, subscription_end } = req.body;
+      await supabase.from('users').insert([{ 
+        id, 
+        password, 
+        name, 
+        role: role || 'user',
+        organization: organization || '감사합니다',
+        subscription_end: subscription_end || '2026-02-20'
+      }]);
+      return res.json({ success: true });
+    }
 
-const showExample = () => {
-  const modal = document.createElement('div');
-  modal.id = 'exampleModal';
-  modal.innerHTML = `
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)closeExample()">
-      <div class="bg-white rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
-        <div class="p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold">📝 작성 예시</h3>
-            <button onclick="closeExample()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-          </div>
-          <div class="space-y-4">
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p class="text-sm font-semibold text-green-700 mb-2">✅ 예시 1: 긍정적인 활동</p>
-              <p class="text-sm text-gray-700 leading-relaxed">비빔국수 요리수업을 했어. 이용자는 재료를 직접 썰고 양념장을 만들었어. 완성된 국수를 보며 "내가 만들었다!"라고 말하며 뿌듯한 표정을 지었어.</p>
-              <p class="text-xs text-gray-500 mt-2">→ 처리사항 체크 ❌</p>
-            </div>
-            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <p class="text-sm font-semibold text-orange-700 mb-2">⚠️ 예시 2: 부정적 행동 포함</p>
-              <p class="text-sm text-gray-700 leading-relaxed">피구공 던지기 연습을 했어. 이용자는 던지기는 잘했지만 공을 잘 피하지 못했어. 자꾸 실수하자 혼잣말로 불만을 표현하며 짜증을 냈어.</p>
-              <p class="text-xs text-gray-500 mt-2">→ 처리사항 체크 ✅</p>
-            </div>
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p class="text-sm text-blue-800">💡 <strong>팁:</strong> 평소 말하듯 편하게 작성하세요. AI가 전문적인 관찰일지로 변환해드립니다.</p>
-            </div>
-          </div>
-          <button onclick="closeExample()" class="w-full mt-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold">확인</button>
-        </div>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-};
+    if (action === 'updateUser') {
+      const { id, password, name, organization, subscription_end } = req.body;
+      const updateData = {};
+      if (password) updateData.password = password;
+      if (name) updateData.name = name;
+      if (organization) updateData.organization = organization;
+      if (subscription_end) updateData.subscription_end = subscription_end;
+      
+      await supabase.from('users').update(updateData).eq('id', id);
+      return res.json({ success: true });
+    }
 
-const closeExample = () => {
-  const modal = document.getElementById('exampleModal');
-  if(modal) modal.remove();
-};
+    if (action === 'deleteUser') {
+      const { id } = req.body;
+      await supabase.from('users').delete().eq('id', id);
+      return res.json({ success: true });
+    }
 
-const getTodayUsageCount = () => {
-  const today = new Date().toLocaleDateString('ko-KR');
-  return state.logs.filter(l => l.user_id === state.user.id && l.date === today).length;
-};
+    // 로그 관련
+    if (action === 'getLogs') {
+      const { data } = await supabase.from('logs').select('*').order('id', { ascending: false });
+      return res.json(data || []);
+    }
 
-const render = () => {
-  if (!state.dataLoaded) return;
-  const app = document.getElementById('app');
-  if(!state.user) {
-    app.innerHTML = `
-      <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-          <div class="text-center mb-4">
-            <span class="text-4xl">📝</span>
-            <h1 class="text-2xl font-bold mt-2">일지 작성 도우미</h1>
-            <p class="text-sm text-gray-500">감사합니다 주간활동센터</p>
-          </div>
-          <div class="text-center mb-6 py-3 bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 rounded-lg border border-indigo-100">
-            <p class="text-sm font-medium text-indigo-600">"기록은 간편하게, 돌봄은 온전하게."</p>
-            <p class="text-xs text-gray-500 mt-1">선생님들의 소중한 쉼과 더 나은 내일을 응원합니다.</p>
-            <p class="text-xs text-gray-500 mt-1">🙏 하루 7회 이내 사용을 부탁드립니다.</p>
-            <p class="text-xs text-indigo-400 mt-2">개발자: 천만석</p>
-          </div>
-          <div class="space-y-4">
-            <div><label class="block text-sm font-medium mb-1">아이디</label><input id="loginId" class="w-full px-4 py-3 border rounded-lg"/></div>
-            <div><label class="block text-sm font-medium mb-1">비밀번호</label><input id="loginPw" type="password" class="w-full px-4 py-3 border rounded-lg"/></div>
-            <p id="loginErr" class="text-red-500 text-sm hidden">아이디 또는 비밀번호가 올바르지 않습니다.</p>
-            <button onclick="login()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg">로그인</button>
-          </div>
-        </div>
-      </div>`;
-    return;
+    if (action === 'addLog') {
+      const { id, date, time, user_id, user_name, input, observation, action: logAction } = req.body;
+      await supabase.from('logs').insert([{ id, date, time, user_id, user_name, input, observation, action: logAction }]);
+      return res.json({ success: true });
+    }
+
+    if (action === 'deleteLog') {
+      const { id } = req.body;
+      await supabase.from('logs').delete().eq('id', id);
+      return res.json({ success: true });
+    }
+
+    if (action === 'deleteLogs') {
+      const { ids } = req.body;
+      await supabase.from('logs').delete().in('id', ids);
+      return res.json({ success: true });
+    }
+
+    return res.status(400).json({ error: 'Invalid action' });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
-  if(state.user.role === 'admin') { renderAdmin(); } else { renderUser(); }
-};
-
-const renderUser = () => {
-  const todayUsage = getTodayUsageCount();
-  const maxUsage = 7;
-  const remaining = maxUsage - todayUsage;
-  
-  document.getElementById('app').innerHTML = `
-    <div class="p-4 max-w-4xl mx-auto">
-      <div class="bg-white rounded-2xl shadow-xl p-6">
-        <div class="flex justify-between items-start mb-4 flex-wrap gap-2">
-          <div class="flex items-center gap-3"><span class="text-3xl">📝</span><h1 class="text-xl font-bold">일지 작성 도우미</h1></div>
-          <div class="flex items-center gap-2"><span class="text-sm">${getGreeting()}</span><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div>
-        </div>
-        <div class="mb-6 p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50 rounded-lg border border-indigo-100">
-          <p class="text-sm text-gray-700 text-center">감사합니다 센터 선생님들의 업무부담을 줄여드리기 위해 개발된 앱입니다.</p>
-          <p class="text-sm text-gray-500 text-center mt-2">🙏 모든 선생님이 원활하게 사용하실 수 있도록, 하루 ${maxUsage}회 이내로 사용해 주시면 감사하겠습니다.</p>
-          <p class="text-sm ${remaining <= 2 ? 'text-red-500 font-semibold' : 'text-indigo-500'} text-center mt-2">📊 오늘 사용: ${todayUsage}회 / ${maxUsage}회 (남은 횟수: ${remaining}회)</p>
-          <p class="text-xs text-indigo-500 text-center mt-2">✦ 개발자: 천만석 ✦</p>
-        </div>
-        <div class="space-y-4">
-          <div>
-            <div class="flex justify-between items-center mb-2">
-              <label class="block text-sm font-semibold">활동내용 <span class="font-normal text-gray-500">(관찰내용과 특이사항을 자유롭게 입력)</span></label>
-              <button onclick="showExample()" class="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-sm font-medium">📖 작성 예시</button>
-            </div>
-            <textarea id="activity" class="w-full px-4 py-3 border rounded-lg h-40" ${state.loading?'disabled':''}></textarea>
-          </div>
-          <div class="flex items-center gap-2"><input type="checkbox" id="needAction" class="w-5 h-5"><label for="needAction" class="text-sm">처리사항 포함</label></div>
-          <button onclick="generate()" class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-4 rounded-lg" ${state.loading || remaining <= 0?'disabled':''}>${state.loading?'⏳ 작성 중...':(remaining <= 0?'⚠️ 오늘 사용량 초과':'관찰일지 작성하기')}</button>
-        </div>
-        <div id="result"></div>
-      </div>
-      <p class="text-center mt-6 text-sm text-gray-600">💙 감사합니다 주간활동센터</p>
-    </div>`;
-};
-
-const renderAdmin = () => {
-  const logs = state.logs, users = state.users.filter(u=>u.role==='user');
-  document.getElementById('app').innerHTML = `
-    <div class="p-4 max-w-6xl mx-auto">
-      <div class="bg-white rounded-2xl shadow-xl p-6">
-        <div class="flex justify-between items-center mb-6 flex-wrap gap-2">
-          <div class="flex items-center gap-3"><span class="text-3xl">📝</span><div><h1 class="text-xl font-bold">관리자 페이지</h1><p class="text-sm text-gray-500">${state.user.name}님</p></div></div>
-          <button onclick="logout()" class="px-4 py-2 bg-gray-100 rounded-lg">🚪 로그아웃</button>
-        </div>
-        <div class="flex gap-2 mb-6 flex-wrap">
-          <button onclick="state.tab='logs';render()" class="px-4 py-2 rounded-lg ${state.tab==='logs'?'bg-indigo-600 text-white':'bg-gray-100'}">📋 로그</button>
-          <button onclick="state.tab='users';render()" class="px-4 py-2 rounded-lg ${state.tab==='users'?'bg-indigo-600 text-white':'bg-gray-100'}">👥 사용자</button>
-        </div>
-        ${state.tab==='logs'?`
-          <div class="mb-4 flex justify-between items-center"><h2 class="font-bold">로그 (${logs.length}건)</h2><button onclick="loadData()" class="px-3 py-1 bg-gray-200 rounded text-sm">🔄 새로고침</button></div>
-          <div class="mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">${users.map(u=>`<div class="bg-gray-50 p-3 rounded"><p class="font-medium">${u.name}</p><p class="text-sm text-gray-500">요청: ${logs.filter(l=>l.user_id===u.id).length}회</p></div>`).join('')}</div>
-          <div class="space-y-3">${logs.slice(0,30).map(l=>`<div class="bg-gray-50 border rounded-lg p-4"><div class="flex flex-wrap gap-2 text-sm mb-2"><span class="text-indigo-600">${l.date}</span><span class="text-gray-500">${l.time}</span><span class="font-medium">${l.user_name}</span></div><div class="space-y-2 text-sm"><div><p class="text-xs text-gray-500">입력</p><p class="bg-white p-2 rounded border mt-1">${l.input||''}</p></div><div><p class="text-xs text-green-600">관찰일지</p><p class="bg-white p-2 rounded border border-green-200 mt-1">${l.observation||''}</p></div>${l.action?`<div><p class="text-xs text-orange-600">처리사항</p><p class="bg-white p-2 rounded border border-orange-200 mt-1">${l.action}</p></div>`:''}</div></div>`).join('')}${logs.length===0?'<p class="text-center py-8 text-gray-500">로그가 없습니다.</p>':''}</div>
-        `:`
-          <div class="bg-gray-50 p-4 rounded-lg mb-4"><h3 class="font-medium mb-3">새 사용자</h3><div class="flex flex-wrap gap-2"><input id="newId" placeholder="아이디" class="px-3 py-2 border rounded flex-1 min-w-20"><input id="newPw" placeholder="비밀번호" class="px-3 py-2 border rounded flex-1 min-w-20"><input id="newName" placeholder="이름" class="px-3 py-2 border rounded flex-1 min-w-20"><button onclick="addUser()" class="px-4 py-2 bg-indigo-600 text-white rounded">추가</button></div></div>
-          <div class="space-y-2">${state.users.map(u=>`<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg flex-wrap gap-2"><div><span class="font-medium">${u.name}</span><span class="text-gray-500 text-sm ml-2">(${u.id})</span><span class="text-gray-400 text-sm ml-2">pw:${u.password}</span>${u.role==='admin'?'<span class="ml-2 px-2 bg-indigo-100 text-indigo-700 text-xs rounded">관리자</span>':''}</div>${u.role!=='admin'?`<button onclick="deleteUser('${u.id}')" class="text-red-600 text-sm">🗑️삭제</button>`:''}</div>`).join('')}</div>
-        `}
-      </div>
-    </div>`;
-};
-
-const login = () => {
-  const id=document.getElementById('loginId').value, pw=document.getElementById('loginPw').value;
-  const user=state.users.find(u=>u.id===id&&u.password===pw);
-  if(user){state.user=user;render();}else{document.getElementById('loginErr').classList.remove('hidden');}
-};
-
-const logout = () => { state.user=null; render(); };
-
-let lastActivity = '';
-let lastNeedAction = false;
-
-const generate = async () => {
-  const activity=document.getElementById('activity').value, needAction=document.getElementById('needAction').checked;
-  if(!activity) return alert('활동내용을 입력해주세요.');
-  
-  const todayUsage = getTodayUsageCount();
-  if(todayUsage >= 7) {
-    alert('😊 오늘 사용 가능한 횟수(7회)를 모두 사용하셨습니다.\n\n내일 다시 이용해 주시면 감사하겠습니다.\n선생님의 노고에 항상 감사드립니다! 🙏');
-    return;
-  }
-  
-  lastActivity = activity;
-  lastNeedAction = needAction;
-  state.loading=true; render();
-  document.getElementById('activity').value = activity;
-  document.getElementById('needAction').checked = needAction;
-  try {
-    const res = await fetch('/api/generate', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({activity,needAction})});
-    const data = await res.json();
-    if(data.error){showResult('⚠️ '+data.error,'','');state.loading=false;render();return;}
-    let obs=data.result||'', act='';
-    if(data.result.includes('[관찰일지]')&&data.result.includes('[처리사항]')){
-      obs=(data.result.match(/\[관찰일지\]\s*([\s\S]*?)\s*\[처리사항]/)||[])[1]?.trim()||'';
-      act=(data.result.match(/\[처리사항\]\s*([\s\S]*)$/)||[])[1]?.trim()||'';
-    }else if(data.result.includes('[관찰일지]')){obs=data.result.replace('[관찰일지]','').trim();}
-    
-    const logData = {id:Date.now(),date:new Date().toLocaleDateString('ko-KR'),time:new Date().toLocaleTimeString('ko-KR'),user_id:state.user.id,user_name:state.user.name,input:activity,observation:obs,action:act};
-    await api('addLog', logData);
-    state.logs.unshift(logData);
-    showResult('',obs,act);
-  }catch(e){showResult('⚠️ 네트워크 오류: '+e.message,'','');}
-  state.loading=false; render();
-  document.getElementById('activity').value = lastActivity;
-  document.getElementById('needAction').checked = lastNeedAction;
-};
-
-const regenerate = () => {
-  if(!lastActivity) return alert('이전 입력 내용이 없습니다.');
-  document.getElementById('activity').value = lastActivity;
-  document.getElementById('needAction').checked = lastNeedAction;
-  generate();
-};
-
-const showResult = (err,obs,act) => {
-  setTimeout(()=>{
-    const r=document.getElementById('result'); if(!r)return;
-    r.innerHTML = err?`<div class="mt-6 bg-red-50 border-2 border-red-300 rounded-lg p-4 text-red-800">${err}</div>`:
-    `<div class="mt-6 space-y-4">
-      <div class="bg-white rounded-lg p-4 border-2 border-green-200"><div class="flex justify-between items-center mb-2"><h3 class="font-bold">관찰일지</h3><button onclick="copyText(\`${obs.replace(/`/g,"\\`").replace(/\\/g,"\\\\")}\`,this)" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm">📋복사</button></div><div class="bg-gray-50 p-3 rounded border">${obs}</div></div>
-      ${act?`<div class="bg-white rounded-lg p-4 border-2 border-orange-200"><div class="flex justify-between items-center mb-2"><h3 class="font-bold">처리사항</h3><button onclick="copyText(\`${act.replace(/`/g,"\\`").replace(/\\/g,"\\\\")}\`,this)" class="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm">📋복사</button></div><div class="bg-gray-50 p-3 rounded border">${act}</div></div>`:''}
-      <div class="flex justify-center pt-4"><button onclick="regenerate()" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold">다시 작성하기</button></div>
-    </div>`;
-  },100);
-};
-
-const copyText = async(t,btn)=>{
-  try{
-    await navigator.clipboard.writeText(t);
-    if(btn){btn.textContent='✅복사됨';setTimeout(()=>btn.textContent='📋복사',2000);}
-  }catch{alert('복사실패');}
-};
-
-const addUser = async()=>{
-  const id=document.getElementById('newId').value,pw=document.getElementById('newPw').value,name=document.getElementById('newName').value;
-  if(!id||!pw||!name)return alert('모두 입력');
-  if(state.users.find(u=>u.id===id))return alert('중복');
-  await api('addUser', {id, password:pw, name, role:'user'});
-  state.users.push({id,password:pw,name,role:'user'});
-  render();
-};
-
-const deleteUser = async(id)=>{
-  if(confirm('삭제?')){
-    await api('deleteUser', {id});
-    state.users=state.users.filter(u=>u.id!==id);
-    render();
-  }
-};
-
-loadData();
-</script>
-</body>
-</html>
+}
