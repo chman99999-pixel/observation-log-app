@@ -1,6 +1,6 @@
 {
   "name": "observation-log-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
   }
