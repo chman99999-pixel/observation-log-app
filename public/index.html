@@ -637,13 +637,29 @@ const login = () => {
   const id = document.getElementById('loginId').value;
   const pw = document.getElementById('loginPw').value;
   const user = state.users.find(u => u.id === id && u.password === pw);
+  
   if(user) {
+    // 관리자는 만료일 체크 안함
+    if(user.role !== 'admin') {
+      // 구독만료일 체크
+      if(user.subscription_end) {
+        const expireDate = new Date(user.subscription_end);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if(expireDate < today) {
+          alert('😢 구독이 만료되었습니다.\n\n구독 연장을 원하시면 관리자에게 문의해주세요.');
+          return;
+        }
+      }
+    }
+    
     state.user = user;
     render();
   } else {
     document.getElementById('loginErr').classList.remove('hidden');
   }
-};
+};;
 
 const logout = () => { 
   state.user = null; 
