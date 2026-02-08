@@ -40,6 +40,34 @@ const loadData = async () => {
   render();
 };
 
+// 로그 검색
+const searchLogs = () => {
+  state.logFilter.startDate = document.getElementById('filterStartDate').value;
+  state.logFilter.endDate = document.getElementById('filterEndDate').value;
+  state.logFilter.organization = document.getElementById('filterOrg').value;
+  state.logFilter.userId = document.getElementById('filterUser').value;
+  render();
+};
+
+// 로그 필터 초기화
+const resetLogFilter = () => {
+  state.logFilter = { startDate: '', endDate: '', userId: '', organization: '' };
+  render();
+};
+
+// 제공인력 검색
+const searchUsers = () => {
+  state.userFilter.search = document.getElementById('userSearchInput').value;
+  state.userFilter.organization = document.getElementById('userOrgFilter').value;
+  render();
+};
+
+// 제공인력 필터 초기화
+const resetUserFilter = () => {
+  state.userFilter = { search: '', organization: '' };
+  render();
+};
+
 const getGreeting = () => {
   const h = new Date().getHours(), n = state.user.name;
   if(h>=6&&h<12) return `좋은 아침이에요, ${n} 선생님 ☀️`;
@@ -179,18 +207,28 @@ const getFilteredLogs = () => {
   // 시작 날짜 필터
   if (state.logFilter.startDate) {
     logs = logs.filter(l => {
-      const logDate = new Date(l.date.replace(/\. /g, '-').replace('.', ''));
-      const startDate = new Date(state.logFilter.startDate);
-      return logDate >= startDate;
+      const parts = l.date.split('. ').map(p => parseInt(p));
+      if (parts.length >= 3) {
+        const logDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        const startDate = new Date(state.logFilter.startDate);
+        startDate.setHours(0, 0, 0, 0);
+        return logDate >= startDate;
+      }
+      return true;
     });
   }
   
   // 끝 날짜 필터
   if (state.logFilter.endDate) {
     logs = logs.filter(l => {
-      const logDate = new Date(l.date.replace(/\. /g, '-').replace('.', ''));
-      const endDate = new Date(state.logFilter.endDate);
-      return logDate <= endDate;
+      const parts = l.date.split('. ').map(p => parseInt(p));
+      if (parts.length >= 3) {
+        const logDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        const endDate = new Date(state.logFilter.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        return logDate <= endDate;
+      }
+      return true;
     });
   }
   
@@ -343,31 +381,34 @@ const renderLogs = (filteredLogs, users, organizations) => {
       
       <!-- 필터 -->
       <div class="bg-gray-50 rounded-lg p-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
           <div>
             <label class="block text-sm font-medium mb-1">시작 날짜</label>
-            <input type="date" id="filterStartDate" value="${state.logFilter.startDate}" onchange="state.logFilter.startDate=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
+            <input type="date" id="filterStartDate" value="${state.logFilter.startDate}" class="w-full px-3 py-2 border rounded-lg">
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">끝 날짜</label>
-            <input type="date" id="filterEndDate" value="${state.logFilter.endDate}" onchange="state.logFilter.endDate=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
+            <input type="date" id="filterEndDate" value="${state.logFilter.endDate}" class="w-full px-3 py-2 border rounded-lg">
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">소속기관</label>
-            <select id="filterOrg" onchange="state.logFilter.organization=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
+            <select id="filterOrg" class="w-full px-3 py-2 border rounded-lg">
               <option value="">전체</option>
               ${organizations.map(o => `<option value="${o}" ${state.logFilter.organization===o?'selected':''}>${o}</option>`).join('')}
             </select>
           </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <div>
             <label class="block text-sm font-medium mb-1">제공인력</label>
-            <select id="filterUser" onchange="state.logFilter.userId=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
+            <select id="filterUser" class="w-full px-3 py-2 border rounded-lg">
               <option value="">전체</option>
               ${users.map(u => `<option value="${u.id}" ${state.logFilter.userId===u.id?'selected':''}>${u.name} (${u.organization || '-'})</option>`).join('')}
             </select>
           </div>
           <div class="flex items-end gap-2">
-            <button onclick="state.logFilter={startDate:'',endDate:'',userId:'',organization:''};render()" class="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">초기화</button>
+            <button onclick="searchLogs()" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium">🔍 검색</button>
+            <button onclick="resetLogFilter()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">초기화</button>
           </div>
         </div>
         ${state.selectedLogs.length > 0 ? `
@@ -432,20 +473,21 @@ const renderUsers = (filteredUsers, organizations) => {
       
       <!-- 검색 필터 -->
       <div class="bg-gray-50 rounded-lg p-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
             <label class="block text-sm font-medium mb-1">이름/아이디 검색</label>
-            <input type="text" placeholder="검색어 입력..." value="${state.userFilter.search}" oninput="state.userFilter.search=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
+            <input type="text" id="userSearchInput" placeholder="검색어 입력..." value="${state.userFilter.search}" class="w-full px-3 py-2 border rounded-lg">
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">소속기관</label>
-            <select onchange="state.userFilter.organization=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
+            <select id="userOrgFilter" class="w-full px-3 py-2 border rounded-lg">
               <option value="">전체</option>
               ${organizations.map(o => `<option value="${o}" ${state.userFilter.organization===o?'selected':''}>${o}</option>`).join('')}
             </select>
           </div>
-          <div class="flex items-end">
-            <button onclick="state.userFilter={search:'',organization:''};render()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">초기화</button>
+          <div class="flex items-end gap-2">
+            <button onclick="searchUsers()" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium">🔍 검색</button>
+            <button onclick="resetUserFilter()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">초기화</button>
           </div>
         </div>
       </div>
