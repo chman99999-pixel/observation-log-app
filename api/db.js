@@ -1,91 +1,76 @@
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
+import { createClient } from '@supabase/supabase-js';
 
-async function supabaseFetch(endpoint, options = {}) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
-    ...options,
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': options.prefer || 'return=representation',
-      ...options.headers
-    }
-  });
-  return res;
-}
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
   const { action } = req.query;
 
   try {
-    // 사용자 목록 가져오기
+    // 사용자 관련
     if (action === 'getUsers') {
-      const response = await supabaseFetch('users?select=*');
-      const data = await response.json();
-      return res.status(200).json(data);
+      const { data } = await supabase.from('users').select('*').order('name');
+      return res.json(data || []);
     }
 
-    // 사용자 추가
     if (action === 'addUser') {
-      const { id, password, name, role } = req.body;
-      const response = await supabaseFetch('users', {
-        method: 'POST',
-        body: JSON.stringify({ id, password, name, role: role || 'user' })
-      });
-      const data = await response.json();
-      return res.status(200).json(data);
+      const { id, password, name, role, organization, subscription_end } = req.body;
+      await supabase.from('users').insert([{ 
+        id, 
+        password, 
+        name, 
+        role: role || 'user',
+        organization: organization || '감사합니다',
+        subscription_end: subscription_end || '2026-02-20'
+      }]);
+      return res.json({ success: true });
     }
 
-    // 사용자 삭제
+    if (action === 'updateUser') {
+      const { id, password, name, organization, subscription_end } = req.body;
+      const updateData = {};
+      if (password) updateData.password = password;
+      if (name) updateData.name = name;
+      if (organization) updateData.organization = organization;
+      if (subscription_end) updateData.subscription_end = subscription_end;
+      
+      await supabase.from('users').update(updateData).eq('id', id);
+      return res.json({ success: true });
+    }
+
     if (action === 'deleteUser') {
       const { id } = req.body;
-      await supabaseFetch(`users?id=eq.${id}`, { method: 'DELETE' });
-      return res.status(200).json({ success: true });
+      await supabase.from('users').delete().eq('id', id);
+      return res.json({ success: true });
     }
 
-    // 로그 목록 가져오기
+    // 로그 관련
     if (action === 'getLogs') {
-      const response = await supabaseFetch('logs?select=*&order=id.desc');
-      const data = await response.json();
-      return res.status(200).json(data);
+      const { data } = await supabase.from('logs').select('*').order('id', { ascending: false });
+      return res.json(data || []);
     }
 
-    // 로그 추가
     if (action === 'addLog') {
-      const { id, date, time, user_id, user_name, input, observation, action: act } = req.body;
-      const response = await supabaseFetch('logs', {
-        method: 'POST',
-        body: JSON.stringify({ id, date, time, user_id, user_name, input, observation, action: act })
-      });
-      const data = await response.json();
-      return res.status(200).json(data);
+      const { id, date, time, user_id, user_name, input, observation, action: logAction } = req.body;
+      await supabase.from('logs').insert([{ id, date, time, user_id, user_name, input, observation, action: logAction }]);
+      return res.json({ success: true });
     }
 
-    // 로그 삭제
     if (action === 'deleteLog') {
       const { id } = req.body;
-      await supabaseFetch(`logs?id=eq.${id}`, { method: 'DELETE' });
-      return res.status(200).json({ success: true });
+      await supabase.from('logs').delete().eq('id', id);
+      return res.json({ success: true });
     }
 
-    // 오래된 로그 삭제
-    if (action === 'deleteOldLogs') {
+    if (action === 'deleteLogs') {
       const { ids } = req.body;
-      for (const id of ids) {
-        await supabaseFetch(`logs?id=eq.${id}`, { method: 'DELETE' });
-      }
-      return res.status(200).json({ success: true });
+      await supabase.from('logs').delete().in('id', ids);
+      return res.json({ success: true });
     }
 
     return res.status(400).json({ error: 'Invalid action' });
-
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
