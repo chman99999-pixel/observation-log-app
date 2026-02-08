@@ -16,7 +16,8 @@ let state = {
   loading: false, 
   tab: 'dashboard', 
   dataLoaded: false,
-  logFilter: { date: '', userId: '' },
+  logFilter: { startDate: '', endDate: '', userId: '', organization: '' },
+  userFilter: { search: '', organization: '' },
   selectedLogs: [],
   editingUser: null
 };
@@ -85,9 +86,10 @@ const closeExample = () => {
   if(modal) modal.remove();
 };
 
-const getTodayUsageCount = () => {
+const getTodayUsageCount = (userId = null) => {
   const today = new Date().toLocaleDateString('ko-KR');
-  return state.logs.filter(l => l.user_id === state.user.id && l.date === today).length;
+  const uid = userId || state.user.id;
+  return state.logs.filter(l => l.user_id === uid && l.date === today).length;
 };
 
 const render = () => {
@@ -174,21 +176,69 @@ const getStats = () => {
 const getFilteredLogs = () => {
   let logs = [...state.logs];
   
-  if (state.logFilter.date) {
-    logs = logs.filter(l => l.date === state.logFilter.date);
+  // 시작 날짜 필터
+  if (state.logFilter.startDate) {
+    logs = logs.filter(l => {
+      const logDate = new Date(l.date.replace(/\. /g, '-').replace('.', ''));
+      const startDate = new Date(state.logFilter.startDate);
+      return logDate >= startDate;
+    });
   }
   
+  // 끝 날짜 필터
+  if (state.logFilter.endDate) {
+    logs = logs.filter(l => {
+      const logDate = new Date(l.date.replace(/\. /g, '-').replace('.', ''));
+      const endDate = new Date(state.logFilter.endDate);
+      return logDate <= endDate;
+    });
+  }
+  
+  // 제공인력 필터
   if (state.logFilter.userId) {
     logs = logs.filter(l => l.user_id === state.logFilter.userId);
   }
   
+  // 소속기관 필터
+  if (state.logFilter.organization) {
+    const usersInOrg = state.users.filter(u => u.organization === state.logFilter.organization).map(u => u.id);
+    logs = logs.filter(l => usersInOrg.includes(l.user_id));
+  }
+  
   return logs;
+};
+
+const getFilteredUsers = () => {
+  let users = state.users.filter(u => u.role === 'user');
+  
+  // 검색어 필터 (이름 또는 아이디)
+  if (state.userFilter.search) {
+    const search = state.userFilter.search.toLowerCase();
+    users = users.filter(u => 
+      u.name.toLowerCase().includes(search) || 
+      u.id.toLowerCase().includes(search)
+    );
+  }
+  
+  // 소속기관 필터
+  if (state.userFilter.organization) {
+    users = users.filter(u => u.organization === state.userFilter.organization);
+  }
+  
+  return users;
+};
+
+const getUniqueOrganizations = () => {
+  const orgs = state.users.filter(u => u.organization).map(u => u.organization);
+  return [...new Set(orgs)];
 };
 
 const renderAdmin = () => {
   const stats = getStats();
   const users = state.users.filter(u => u.role === 'user');
   const filteredLogs = getFilteredLogs();
+  const filteredUsers = getFilteredUsers();
+  const organizations = getUniqueOrganizations();
   
   document.getElementById('app').innerHTML = `
     <div class="p-4 max-w-6xl mx-auto">
@@ -214,8 +264,8 @@ const renderAdmin = () => {
         
         <!-- 탭 컨텐츠 -->
         ${state.tab === 'dashboard' ? renderDashboard(stats, users) : ''}
-        ${state.tab === 'logs' ? renderLogs(filteredLogs, users) : ''}
-        ${state.tab === 'users' ? renderUsers(users) : ''}
+        ${state.tab === 'logs' ? renderLogs(filteredLogs, users, organizations) : ''}
+        ${state.tab === 'users' ? renderUsers(filteredUsers, organizations) : ''}
       </div>
     </div>`;
 };
@@ -224,7 +274,6 @@ const renderDashboard = (stats, users) => {
   const today = new Date().toLocaleDateString('ko-KR');
   const todayLogs = state.logs.filter(l => l.date === today);
   
-  // 오늘 사용자별 사용량
   const userUsage = users.map(u => ({
     name: u.name,
     count: todayLogs.filter(l => l.user_id === u.id).length
@@ -234,7 +283,6 @@ const renderDashboard = (stats, users) => {
     <div class="space-y-6">
       <h2 class="text-lg font-bold">📊 통계 현황</h2>
       
-      <!-- 통계 카드 -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
           <div class="flex items-center gap-3">
@@ -265,7 +313,6 @@ const renderDashboard = (stats, users) => {
         </div>
       </div>
       
-      <!-- 오늘 사용자별 사용량 -->
       <div class="bg-gray-50 rounded-xl p-4">
         <h3 class="font-semibold mb-3">📈 금일 사용 현황</h3>
         ${userUsage.length > 0 ? `
@@ -286,9 +333,7 @@ const renderDashboard = (stats, users) => {
   `;
 };
 
-const renderLogs = (filteredLogs, users) => {
-  const uniqueDates = [...new Set(state.logs.map(l => l.date))].sort().reverse();
-  
+const renderLogs = (filteredLogs, users, organizations) => {
   return `
     <div class="space-y-4">
       <div class="flex justify-between items-center flex-wrap gap-2">
@@ -298,31 +343,45 @@ const renderLogs = (filteredLogs, users) => {
       
       <!-- 필터 -->
       <div class="bg-gray-50 rounded-lg p-4">
-        <div class="flex flex-wrap gap-3 items-end">
-          <div class="flex-1 min-w-32">
-            <label class="block text-sm font-medium mb-1">날짜</label>
-            <select id="filterDate" onchange="state.logFilter.date=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">시작 날짜</label>
+            <input type="date" id="filterStartDate" value="${state.logFilter.startDate}" onchange="state.logFilter.startDate=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">끝 날짜</label>
+            <input type="date" id="filterEndDate" value="${state.logFilter.endDate}" onchange="state.logFilter.endDate=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">소속기관</label>
+            <select id="filterOrg" onchange="state.logFilter.organization=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
               <option value="">전체</option>
-              ${uniqueDates.map(d => `<option value="${d}" ${state.logFilter.date===d?'selected':''}>${d}</option>`).join('')}
+              ${organizations.map(o => `<option value="${o}" ${state.logFilter.organization===o?'selected':''}>${o}</option>`).join('')}
             </select>
           </div>
-          <div class="flex-1 min-w-32">
+          <div>
             <label class="block text-sm font-medium mb-1">제공인력</label>
             <select id="filterUser" onchange="state.logFilter.userId=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
               <option value="">전체</option>
-              ${users.map(u => `<option value="${u.id}" ${state.logFilter.userId===u.id?'selected':''}>${u.name}</option>`).join('')}
+              ${users.map(u => `<option value="${u.id}" ${state.logFilter.userId===u.id?'selected':''}>${u.name} (${u.organization || '-'})</option>`).join('')}
             </select>
           </div>
-          <button onclick="state.logFilter={date:'',userId:''};render()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">초기화</button>
-          ${state.selectedLogs.length > 0 ? `
-            <button onclick="deleteSelectedLogs()" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm">🗑️ 선택 삭제 (${state.selectedLogs.length})</button>
-          ` : ''}
+          <div class="flex items-end gap-2">
+            <button onclick="state.logFilter={startDate:'',endDate:'',userId:'',organization:''};render()" class="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">초기화</button>
+          </div>
         </div>
+        ${state.selectedLogs.length > 0 ? `
+          <div class="mt-3 pt-3 border-t">
+            <button onclick="deleteSelectedLogs()" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm">🗑️ 선택 삭제 (${state.selectedLogs.length})</button>
+          </div>
+        ` : ''}
       </div>
       
       <!-- 로그 목록 -->
       <div class="space-y-3">
-        ${filteredLogs.slice(0, 50).map(l => `
+        ${filteredLogs.slice(0, 50).map(l => {
+          const user = state.users.find(u => u.id === l.user_id);
+          return `
           <div class="bg-gray-50 border rounded-lg p-4">
             <div class="flex items-start gap-3">
               <input type="checkbox" class="mt-1 w-4 h-4" ${state.selectedLogs.includes(l.id)?'checked':''} onchange="toggleLogSelect(${l.id})">
@@ -331,6 +390,7 @@ const renderLogs = (filteredLogs, users) => {
                   <span class="text-indigo-600 font-medium">${l.date}</span>
                   <span class="text-gray-500">${l.time}</span>
                   <span class="bg-indigo-100 text-indigo-700 px-2 rounded">${l.user_name}</span>
+                  <span class="bg-gray-200 text-gray-600 px-2 rounded text-xs">${user?.organization || '-'}</span>
                 </div>
                 <div class="space-y-2 text-sm">
                   <div>
@@ -352,7 +412,7 @@ const renderLogs = (filteredLogs, users) => {
               <button onclick="deleteLog(${l.id})" class="text-red-500 hover:text-red-700 text-sm">🗑️</button>
             </div>
           </div>
-        `).join('')}
+        `}).join('')}
         ${filteredLogs.length === 0 ? '<p class="text-center py-8 text-gray-500">로그가 없습니다.</p>' : ''}
         ${filteredLogs.length > 50 ? `<p class="text-center py-4 text-gray-500">최근 50건만 표시됩니다.</p>` : ''}
       </div>
@@ -360,12 +420,34 @@ const renderLogs = (filteredLogs, users) => {
   `;
 };
 
-const renderUsers = (users) => {
+const renderUsers = (filteredUsers, organizations) => {
+  const today = new Date().toLocaleDateString('ko-KR');
+  
   return `
     <div class="space-y-4">
-      <div class="flex justify-between items-center">
-        <h2 class="text-lg font-bold">👥 제공인력 관리 (${users.length}명)</h2>
+      <div class="flex justify-between items-center flex-wrap gap-2">
+        <h2 class="text-lg font-bold">👥 제공인력 관리 (${filteredUsers.length}명)</h2>
         <button onclick="showAddUserModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium">+ 제공인력 추가</button>
+      </div>
+      
+      <!-- 검색 필터 -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">이름/아이디 검색</label>
+            <input type="text" placeholder="검색어 입력..." value="${state.userFilter.search}" oninput="state.userFilter.search=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">소속기관</label>
+            <select onchange="state.userFilter.organization=this.value;render()" class="w-full px-3 py-2 border rounded-lg">
+              <option value="">전체</option>
+              ${organizations.map(o => `<option value="${o}" ${state.userFilter.organization===o?'selected':''}>${o}</option>`).join('')}
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button onclick="state.userFilter={search:'',organization:''};render()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">초기화</button>
+          </div>
+        </div>
       </div>
       
       <!-- 사용자 목록 -->
@@ -375,28 +457,31 @@ const renderUsers = (users) => {
             <tr>
               <th class="px-4 py-3 text-left font-semibold">이름</th>
               <th class="px-4 py-3 text-left font-semibold">아이디</th>
-              <th class="px-4 py-3 text-left font-semibold">비밀번호</th>
               <th class="px-4 py-3 text-left font-semibold">소속기관</th>
               <th class="px-4 py-3 text-left font-semibold">구독만료일</th>
-              <th class="px-4 py-3 text-left font-semibold">사용량</th>
+              <th class="px-4 py-3 text-left font-semibold">오늘 사용량</th>
               <th class="px-4 py-3 text-center font-semibold">관리</th>
             </tr>
           </thead>
           <tbody class="divide-y">
-            ${users.map(u => {
-              const usage = state.logs.filter(l => l.user_id === u.id).length;
+            ${filteredUsers.map(u => {
+              const todayUsage = getTodayUsageCount(u.id);
               const isExpired = u.subscription_end && new Date(u.subscription_end) < new Date();
               return `
                 <tr class="hover:bg-gray-50 ${isExpired ? 'bg-red-50' : ''}">
                   <td class="px-4 py-3 font-medium">${u.name}</td>
                   <td class="px-4 py-3 text-gray-600">${u.id}</td>
-                  <td class="px-4 py-3 text-gray-600">${u.password}</td>
                   <td class="px-4 py-3">${u.organization || '-'}</td>
                   <td class="px-4 py-3 ${isExpired ? 'text-red-600 font-semibold' : ''}">${u.subscription_end || '-'} ${isExpired ? '(만료)' : ''}</td>
-                  <td class="px-4 py-3">${usage}회</td>
+                  <td class="px-4 py-3">
+                    <div class="flex items-center gap-2">
+                      <span class="${todayUsage >= 7 ? 'text-red-600 font-semibold' : ''}">${todayUsage}회 / 7회</span>
+                      ${todayUsage > 0 ? `<button onclick="resetUserUsage('${u.id}', '${u.name}')" class="px-2 py-1 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded text-xs">초기화</button>` : ''}
+                    </div>
+                  </td>
                   <td class="px-4 py-3 text-center">
-                    <button onclick='showEditUserModal(${JSON.stringify(u).replace(/'/g, "\\'")})' class="text-blue-600 hover:text-blue-800 mr-2">✏️수정</button>
-                    <button onclick="deleteUser('${u.id}')" class="text-red-600 hover:text-red-800">🗑️삭제</button>
+                    <button onclick='showEditUserModal(${JSON.stringify(u).replace(/'/g, "\\'")})' class="text-blue-600 hover:text-blue-800 mr-2">✏️</button>
+                    <button onclick="deleteUser('${u.id}')" class="text-red-600 hover:text-red-800">🗑️</button>
                   </td>
                 </tr>
               `;
@@ -404,7 +489,7 @@ const renderUsers = (users) => {
           </tbody>
         </table>
       </div>
-      ${users.length === 0 ? '<p class="text-center py-8 text-gray-500">등록된 제공인력이 없습니다.</p>' : ''}
+      ${filteredUsers.length === 0 ? '<p class="text-center py-8 text-gray-500">검색 결과가 없습니다.</p>' : ''}
     </div>
   `;
 };
@@ -509,27 +594,20 @@ const closeUserModal = () => {
 const login = () => {
   const id = document.getElementById('loginId').value;
   const pw = document.getElementById('loginPw').value;
-  
-  console.log('입력한 아이디:', id);
-  console.log('입력한 비밀번호:', pw);
-  console.log('불러온 사용자 목록:', state.users);
-  
   const user = state.users.find(u => u.id === id && u.password === pw);
-  
-  console.log('찾은 사용자:', user);
-  
   if(user) {
     state.user = user;
     render();
   } else {
     document.getElementById('loginErr').classList.remove('hidden');
   }
-};;
+};
 
 const logout = () => { 
   state.user = null; 
   state.tab = 'dashboard';
-  state.logFilter = { date: '', userId: '' };
+  state.logFilter = { startDate: '', endDate: '', userId: '', organization: '' };
+  state.userFilter = { search: '', organization: '' };
   state.selectedLogs = [];
   render(); 
 };
@@ -689,6 +767,23 @@ const deleteUser = async(id) => {
   if(confirm(`'${id}' 사용자를 삭제하시겠습니까?`)) {
     await api('deleteUser', { id });
     state.users = state.users.filter(u => u.id !== id);
+    render();
+  }
+};
+
+// 사용량 초기화 (해당 사용자의 오늘 로그 삭제)
+const resetUserUsage = async(userId, userName) => {
+  if(confirm(`'${userName}' 선생님의 오늘 사용량을 초기화하시겠습니까?\n\n⚠️ 오늘 작성한 로그가 모두 삭제됩니다.`)) {
+    const today = new Date().toLocaleDateString('ko-KR');
+    const todayLogs = state.logs.filter(l => l.user_id === userId && l.date === today);
+    const ids = todayLogs.map(l => l.id);
+    
+    if(ids.length > 0) {
+      await api('deleteLogs', { ids });
+      state.logs = state.logs.filter(l => !ids.includes(l.id));
+    }
+    
+    alert(`${userName} 선생님의 오늘 사용량이 초기화되었습니다.`);
     render();
   }
 };
