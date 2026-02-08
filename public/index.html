@@ -509,14 +509,22 @@ const closeUserModal = () => {
 const login = () => {
   const id = document.getElementById('loginId').value;
   const pw = document.getElementById('loginPw').value;
+  
+  console.log('입력한 아이디:', id);
+  console.log('입력한 비밀번호:', pw);
+  console.log('불러온 사용자 목록:', state.users);
+  
   const user = state.users.find(u => u.id === id && u.password === pw);
+  
+  console.log('찾은 사용자:', user);
+  
   if(user) {
     state.user = user;
     render();
   } else {
     document.getElementById('loginErr').classList.remove('hidden');
   }
-};
+};;
 
 const logout = () => { 
   state.user = null; 
