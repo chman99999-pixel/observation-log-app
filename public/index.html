@@ -731,28 +731,38 @@ const showResult = (err, obs, act) => {
   setTimeout(() => {
     const r = document.getElementById('result');
     if(!r) return;
-    r.innerHTML = err ? `<div class="mt-6 bg-red-50 border-2 border-red-300 rounded-lg p-4 text-red-800">${err}</div>` :
-    `<div class="mt-6 space-y-4">
-      <div class="bg-white rounded-lg p-4 border-2 border-green-200">
-        <div class="flex justify-between items-center mb-2">
-          <h3 class="font-bold">관찰일지</h3>
-          <button onclick="copyText(\`${obs.replace(/`/g,"\\`").replace(/\\/g,"\\\\")}\`,this)" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm">📋복사</button>
-        </div>
-        <div class="bg-gray-50 p-3 rounded border">${obs}</div>
-      </div>
-      ${act ? `
-        <div class="bg-white rounded-lg p-4 border-2 border-orange-200">
+    
+    if(err) {
+      r.innerHTML = `<div class="mt-6 bg-red-50 border-2 border-red-300 rounded-lg p-4 text-red-800">${err}</div>`;
+      return;
+    }
+    
+    // 결과를 전역 변수에 저장
+    window.lastObservation = obs;
+    window.lastAction = act;
+    
+    r.innerHTML = `
+      <div class="mt-6 space-y-4">
+        <div class="bg-white rounded-lg p-4 border-2 border-green-200">
           <div class="flex justify-between items-center mb-2">
-            <h3 class="font-bold">처리사항</h3>
-            <button onclick="copyText(\`${act.replace(/`/g,"\\`").replace(/\\/g,"\\\\")}\`,this)" class="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm">📋복사</button>
+            <h3 class="font-bold">관찰일지</h3>
+            <button onclick="copyObservation(this)" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm">📋복사</button>
           </div>
-          <div class="bg-gray-50 p-3 rounded border">${act}</div>
+          <div class="bg-gray-50 p-3 rounded border">${obs}</div>
         </div>
-      ` : ''}
-      <div class="flex justify-center pt-4">
-        <button onclick="regenerate()" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold">다시 작성하기</button>
-      </div>
-    </div>`;
+        ${act ? `
+          <div class="bg-white rounded-lg p-4 border-2 border-orange-200">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="font-bold">처리사항</h3>
+              <button onclick="copyAction(this)" class="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm">📋복사</button>
+            </div>
+            <div class="bg-gray-50 p-3 rounded border">${act}</div>
+          </div>
+        ` : ''}
+        <div class="flex justify-center pt-4">
+          <button onclick="regenerate()" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold">다시 작성하기</button>
+        </div>
+      </div>`;
   }, 100);
 };
 
@@ -768,6 +778,30 @@ const copyText = async(t, btn) => {
   }
 };
 
+const copyObservation = async(btn) => {
+  try {
+    await navigator.clipboard.writeText(window.lastObservation || '');
+    if(btn) {
+      btn.textContent = '✅복사됨';
+      setTimeout(() => btn.textContent = '📋복사', 2000);
+    }
+  } catch {
+    alert('복사실패');
+  }
+};
+
+const copyAction = async(btn) => {
+  try {
+    await navigator.clipboard.writeText(window.lastAction || '');
+    if(btn) {
+      btn.textContent = '✅복사됨';
+      setTimeout(() => btn.textContent = '📋복사', 2000);
+    }
+  } catch {
+    alert('복사실패');
+  }
+};
+  
 const addUser = async() => {
   const id = document.getElementById('modalUserId').value;
   const pw = document.getElementById('modalUserPw').value;
