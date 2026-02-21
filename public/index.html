@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>일지 작성 도우미</title>
+  <title>복지인 서류해방</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -148,7 +148,71 @@ const render = () => {
       </div>`;
     return;
   }
+  if(state.tab === 'hub') { renderHub(); return; }
   if(state.user.role === 'admin') { renderAdmin(); } else { renderUser(); }
+};
+
+const renderHub = () => {
+  const greet = (() => {
+    const h = new Date().getHours(), n = state.user.name;
+    if(h>=6&&h<12) return `좋은 아침이에요, ${n} 선생님 ☀️`;
+    if(h>=12&&h<18) return `오늘도 힘내세요, ${n} 선생님 💪`;
+    if(h>=18&&h<22) return `오늘 하루도 수고하셨어요, ${n} 선생님 🌙`;
+    return `늦은 밤 고생이 많으세요, ${n} 선생님 🌜`;
+  })();
+
+  document.getElementById('app').innerHTML = `
+    <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div class="max-w-4xl mx-auto">
+
+        <!-- 헤더 -->
+        <div class="flex justify-between items-center mb-2 flex-wrap gap-3">
+          <div>
+            <h1 class="text-2xl font-bold text-indigo-800">복지인 서류해방</h1>
+            <p class="text-sm text-gray-500 mt-0.5">쓰는 시간은 줄이고, 돌보는 시간은 늘리고</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-600">${greet}</span>
+            <button onclick="logout()" class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm hover:bg-gray-50">🚪 로그아웃</button>
+          </div>
+        </div>
+
+        <p class="text-xs text-indigo-400 mb-8">이용할 서비스를 선택해주세요</p>
+
+        <!-- 앱 카드 3개 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+          <!-- 일지해방 -->
+          <div onclick="state.tab='dashboard';render()"
+               class="bg-white rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-indigo-300">
+            <div class="text-4xl mb-3">📝</div>
+            <h2 class="text-lg font-bold text-gray-800 mb-1">일지해방</h2>
+            <p class="text-gray-400 text-sm mb-4">관찰일지 AI 자동 작성</p>
+            <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold">사용 가능 →</span>
+          </div>
+
+          <!-- 기록지해방 -->
+          <a href="https://jukgan-jaripdong-app-93jqyjotebw9s6ykzzncff.streamlit.app/" target="_blank"
+             class="bg-white rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-emerald-300 block no-underline">
+            <div class="text-4xl mb-3">📊</div>
+            <h2 class="text-lg font-bold text-gray-800 mb-1">기록지해방</h2>
+            <p class="text-gray-400 text-sm mb-4">활동기록지 자동 입력</p>
+            <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">사용 가능 →</span>
+          </a>
+
+          <!-- 계획서해방 (준비 중) -->
+          <div class="bg-white rounded-2xl shadow-md p-6 border-2 border-transparent opacity-50 cursor-not-allowed select-none">
+            <div class="text-4xl mb-3">📋</div>
+            <h2 class="text-lg font-bold text-gray-800 mb-1">계획서해방</h2>
+            <p class="text-gray-400 text-sm mb-4">AI 활동계획서 작성</p>
+            <span class="inline-block px-3 py-1 bg-gray-100 text-gray-400 rounded-full text-xs font-semibold">준비 중</span>
+          </div>
+
+        </div>
+
+        <p class="text-center mt-10 text-xs text-gray-400">💙 감사합니다 주간활동센터 &nbsp;|&nbsp; 개발자: 천만석</p>
+      </div>
+    </div>`;
 };
 
 const renderUser = () => {
@@ -160,8 +224,8 @@ const renderUser = () => {
     <div class="p-4 max-w-4xl mx-auto">
       <div class="bg-white rounded-2xl shadow-xl p-6">
         <div class="flex justify-between items-start mb-4 flex-wrap gap-2">
-          <div class="flex items-center gap-3"><span class="text-3xl">📝</span><h1 class="text-xl font-bold">일지 작성 도우미</h1></div>
-          <div class="flex items-center gap-2"><span class="text-sm">${getGreeting()}</span><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div>
+          <div class="flex items-center gap-3"><span class="text-3xl">📝</span><h1 class="text-xl font-bold">일지해방</h1></div>
+          <div class="flex items-center gap-2"><span class="text-sm">${getGreeting()}</span><button onclick="state.tab='hub';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">🏠 홈</button><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div>
         </div>
         <div class="mb-6 p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50 rounded-lg border border-indigo-100">
           <p class="text-sm text-gray-700 text-center">감사합니다 센터 선생님들의 업무부담을 줄여드리기 위해 개발된 앱입니다.</p>
@@ -290,7 +354,7 @@ const renderAdmin = () => {
               <p class="text-sm text-gray-500">${state.user.name}님</p>
             </div>
           </div>
-          <button onclick="logout()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg">🚪 로그아웃</button>
+          <div class="flex gap-2"><button onclick="state.tab='hub';render()" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg">🏠 홈</button><button onclick="logout()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg">🚪 로그아웃</button></div>
         </div>
         
         <!-- 탭 메뉴 -->
@@ -655,6 +719,7 @@ const login = () => {
     }
     
     state.user = user;
+    state.tab = 'hub';
     render();
   } else {
     document.getElementById('loginErr').classList.remove('hidden');
