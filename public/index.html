@@ -235,8 +235,8 @@ const renderHub = () => {
         <!-- 섹션 타이틀 -->
         <p class="text-base font-semibold text-indigo-500 mb-4 tracking-wide">이용할 서비스를 선택해주세요</p>
 
-        <!-- 앱 카드 3개 -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- 앱 카드 4개 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
           <!-- 일지해방 -->
           <div onclick="state.tab='dashboard';render()"
@@ -262,6 +262,19 @@ const renderHub = () => {
               <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600">이중작업 제거</span>
             </div>
             <span class="inline-block px-4 py-3 bg-emerald-600 text-white rounded-lg text-sm font-semibold text-center hover:bg-emerald-700 transition-colors">사용하기 →</span>
+          </a>
+
+          <!-- 스마트 이미지 메이커 -->
+          <a href="https://image-style-converter.vercel.app" target="_blank"
+             class="bg-white rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-violet-300 block no-underline flex flex-col">
+            <div class="w-[120px] h-[120px] rounded-full bg-violet-100 flex items-center justify-center shadow-sm mb-4 text-5xl">🎨</div>
+            <h2 class="text-lg font-bold text-gray-800 mb-1">스마트 이미지 메이커</h2>
+            <p class="text-gray-500 text-sm mb-3 flex-1">미술활동지 이미지를 AI가 뚝딱 만들어드립니다</p>
+            <div class="flex flex-wrap gap-1.5 mb-4">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-violet-600">AI 생성</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-violet-600">미술활동지</span>
+            </div>
+            <span class="inline-block px-4 py-3 bg-violet-600 text-white rounded-lg text-sm font-semibold text-center hover:bg-violet-700 transition-colors">사용하기 →</span>
           </a>
 
           <!-- 계획서해방 (준비 중) -->
