@@ -5,9 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>복지인 서류해방</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse-fade { 0%,100% { opacity:.4; transform:scale(.85); } 50% { opacity:1; transform:scale(1); } }
+    .splash-spinner { width:48px; height:48px; border:4px solid #c7d2fe; border-top-color:#6366f1; border-radius:50%; animation:spin .9s linear infinite; }
+    .splash-dot { width:10px; height:10px; border-radius:50%; background:#6366f1; animation:pulse-fade 1.2s ease-in-out infinite; }
+    .splash-dot:nth-child(2) { animation-delay:.2s; }
+    .splash-dot:nth-child(3) { animation-delay:.4s; }
+  </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-<div id="app"><div class="flex items-center justify-center min-h-screen"><p>로딩 중...</p></div></div>
+<div id="app">
+  <div class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 gap-6">
+    <img src="/images/logo_home.jpg" alt="복지인 서류해방" class="w-64 drop-shadow-md">
+    <div class="flex gap-3">
+      <div class="splash-dot"></div>
+      <div class="splash-dot"></div>
+      <div class="splash-dot"></div>
+    </div>
+    <p class="text-sm text-indigo-400 tracking-wide">잠시만 기다려 주세요...</p>
+  </div>
+</div>
 <script>
 let state = { 
   user: null, 
@@ -37,7 +55,7 @@ const loadData = async () => {
     state.logs = await api('getLogs');
     state.dataLoaded = true;
   } catch (e) { console.error(e); state.users = []; state.logs = []; state.dataLoaded = true; }
-  render();
+  // render()는 외부(스플래시 타이머)에서 호출
 };
 
 // 로그 검색
@@ -1021,7 +1039,13 @@ const deleteSelectedLogs = async() => {
   }
 };
 
-loadData();
+// 스플래시 화면 최소 1.8초 보장 후 로그인 화면 전환
+const _splashStart = Date.now();
+loadData().then(() => {
+  const elapsed = Date.now() - _splashStart;
+  const minMs = 1800;
+  setTimeout(render, Math.max(0, minMs - elapsed));
+});
 </script>
 </body>
 </html>
