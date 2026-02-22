@@ -249,54 +249,54 @@ const renderHub = () => {
 
           <!-- 일지해방 -->
           <div onclick="state.tab='dashboard';render()"
-               class="bg-white rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-indigo-300 flex flex-col">
+               class="bg-white rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-sky-300 flex flex-col">
             <img src="/images/logo_ilgi.jpg" alt="일지해방" class="w-[120px] h-[120px] rounded-full object-cover shadow-sm mb-4">
             <h2 class="text-lg font-bold text-gray-800 mb-1">일지 해방</h2>
             <p class="text-gray-500 text-sm mb-3 flex-1">말하듯 입력하면 전문적인 관찰일지가 완성됩니다</p>
             <div class="flex flex-wrap gap-1.5 mb-4">
-              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-600">AI 작성</span>
-              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-600">간편 입력</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-600">AI 작성</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-600">간편 입력</span>
             </div>
-            <span class="inline-block px-4 py-3 bg-indigo-600 text-white rounded-lg text-sm font-semibold text-center hover:bg-indigo-700 transition-colors">사용하기 →</span>
+            <span class="inline-block px-4 py-3 bg-sky-500 text-white rounded-lg text-sm font-semibold text-center hover:bg-sky-600 transition-colors">사용하기 →</span>
           </div>
 
           <!-- 기록지해방 -->
           <div onclick="openExtApp('https://jukgan-jaripdong-app-93jqyjotebw9s6ykzzncff.streamlit.app/')"
-             class="bg-white rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-emerald-300 flex flex-col">
+             class="bg-white rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-teal-300 flex flex-col">
             <img src="/images/logo_girokgi.jpg" alt="기록지해방" class="w-[120px] h-[120px] rounded-full object-cover shadow-sm mb-4">
             <h2 class="text-lg font-bold text-gray-800 mb-1">기록지 해방</h2>
             <p class="text-gray-500 text-sm mb-3 flex-1">일지를 쓰면 기록지 엑셀이 자동으로 채워집니다</p>
             <div class="flex flex-wrap gap-1.5 mb-4">
-              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600">자동화</span>
-              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600">이중작업 제거</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-teal-50 text-teal-600">자동화</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-teal-50 text-teal-600">이중작업 제거</span>
             </div>
-            <span class="inline-block px-4 py-3 bg-emerald-600 text-white rounded-lg text-sm font-semibold text-center hover:bg-emerald-700 transition-colors">사용하기 →</span>
+            <span class="inline-block px-4 py-3 bg-teal-500 text-white rounded-lg text-sm font-semibold text-center hover:bg-teal-600 transition-colors">사용하기 →</span>
           </div>
 
           <!-- 계획서해방 -->
           <div onclick="openExtApp('https://planner-app-dc5h.vercel.app')"
-             class="bg-white rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-orange-300 flex flex-col">
+             class="bg-white rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-purple-300 flex flex-col">
             <img src="/images/logo_plan.jpg" alt="계획서해방" class="w-[120px] h-[120px] rounded-full object-cover shadow-sm mb-4">
             <h2 class="text-lg font-bold text-gray-800 mb-1">계획서 해방</h2>
             <p class="text-gray-500 text-sm mb-3 flex-1">다음 달 수업 계획서를 AI가 함께 작성해드립니다</p>
             <div class="flex flex-wrap gap-1.5 mb-4">
-              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600">AI 기획</span>
-              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600">빠른 완성</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-600">AI 기획</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-600">빠른 완성</span>
             </div>
-            <span class="inline-block px-4 py-3 bg-orange-500 text-white rounded-lg text-sm font-semibold text-center hover:bg-orange-600 transition-colors">사용하기 →</span>
+            <span class="inline-block px-4 py-3 bg-purple-500 text-white rounded-lg text-sm font-semibold text-center hover:bg-purple-600 transition-colors">사용하기 →</span>
           </div>
 
           <!-- 그림공작소 -->
           <div onclick="openExtApp('https://image-style-converter.vercel.app')"
-             class="bg-white rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-violet-300 flex flex-col">
+             class="bg-white rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-amber-300 flex flex-col">
             <img src="/images/logo_grimgongjakso.png" alt="그림공작소" class="w-[120px] h-[120px] rounded-full object-cover shadow-sm mb-4">
             <h2 class="text-lg font-bold text-gray-800 mb-1">그림공작소</h2>
             <p class="text-gray-500 text-sm mb-3 flex-1">AI가 만드는 미술활동지 이미지 — 4월까지 한시 운영</p>
             <div class="flex flex-wrap gap-1.5 mb-4">
-              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-violet-600">AI 생성</span>
-              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-violet-600">미술활동지</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600">AI 생성</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600">미술활동지</span>
             </div>
-            <span class="inline-block px-4 py-3 bg-violet-600 text-white rounded-lg text-sm font-semibold text-center hover:bg-violet-700 transition-colors">사용하기 →</span>
+            <span class="inline-block px-4 py-3 bg-amber-500 text-white rounded-lg text-sm font-semibold text-center hover:bg-amber-600 transition-colors">사용하기 →</span>
           </div>
 
         </div>
