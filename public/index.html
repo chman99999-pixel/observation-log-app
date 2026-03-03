@@ -12,6 +12,14 @@
     .splash-dot { width:10px; height:10px; border-radius:50%; background:#6366f1; animation:pulse-fade 1.2s ease-in-out infinite; }
     .splash-dot:nth-child(2) { animation-delay:.2s; }
     .splash-dot:nth-child(3) { animation-delay:.4s; }
+    /* 브랜드 슬라이드 롤링 */
+    @keyframes slide-up-in { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
+    @keyframes slide-up-out { from { transform: translateY(0); opacity:1; } to { transform: translateY(-100%); opacity:0; } }
+    .brand-slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:0 1rem; }
+    .brand-slide[data-state="entering"] { animation: slide-up-in .5s ease forwards; }
+    .brand-slide[data-state="leaving"] { animation: slide-up-out .5s ease forwards; }
+    .brand-slide[data-state="hidden"] { opacity:0; pointer-events:none; }
+    .brand-slide[data-state="visible"] { opacity:1; }
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -228,17 +236,20 @@ const renderHub = () => {
           <img src="/images/logo_home.jpg" alt="복지인 서류해방" class="w-52 h-auto mx-auto rounded-2xl shadow-md mb-4">
         </div>
 
-        <!-- 브랜드 스토리 카드 -->
-        <div class="bg-white border-l-4 border-indigo-400 rounded-r-2xl p-5 shadow-sm mb-8">
-          <p class="text-sm text-gray-700 leading-relaxed">
-            사회복지사와 제공인력은 매일 돌봄 현장에서 최선을 다합니다.<br>
-            그런데 퇴근 후에도 서류가 기다리고 있죠.<br><br>
-            <strong class="text-indigo-700">복지인 서류해방</strong>은 그 짐을 덜어드리기 위해 만들어졌습니다.<br>
-            관찰일지 작성부터 기록지 자동입력, 계획서 작성까지<br>
-            반복적이고 소모적인 서류업무를 AI가 스마트하게 처리합니다.<br><br>
-            <span class="text-indigo-600 font-semibold">당신의 시간과 에너지는 오직 이용자를 위해 쓰여야 합니다.</span><br>
-            서류는 저희가 해방시켜 드릴게요.
-          </p>
+        <!-- 브랜드 슬라이드 롤링 -->
+        <div class="bg-white rounded-2xl shadow-sm mb-8 border border-indigo-100 overflow-hidden relative" style="height:72px;">
+          <div class="brand-slide" data-state="visible" data-idx="0">
+            <p class="text-base text-gray-700 font-medium">관찰일지부터 기록지, 계획서까지 — <strong class="text-indigo-600">AI가 스마트하게 처리</strong>합니다</p>
+          </div>
+          <div class="brand-slide" data-state="hidden" data-idx="1">
+            <p class="text-base text-gray-700 font-medium">반복적인 서류업무, <strong class="text-indigo-600">복지인 서류해방</strong>이 해방시켜 드릴게요</p>
+          </div>
+          <div class="brand-slide" data-state="hidden" data-idx="2">
+            <p class="text-base text-gray-700 font-medium"><strong class="text-indigo-600">당신의 시간과 에너지</strong>는 오직 이용자를 위해 쓰여야 합니다</p>
+          </div>
+          <div class="brand-slide" data-state="hidden" data-idx="3">
+            <p class="text-base text-gray-700 font-medium">퇴근 후에도 서류가 기다리고 있죠? <strong class="text-indigo-600">이제 걱정 마세요</strong></p>
+          </div>
         </div>
 
         <!-- 섹션 타이틀 -->
@@ -317,6 +328,7 @@ const renderHub = () => {
         <p class="text-center mt-10 text-xs text-gray-400">💙 감사합니다 주간활동센터 &nbsp;|&nbsp; 개발자: 천만석</p>
       </div>
     </div>`;
+  setTimeout(startBrandSlider, 100);
 };
 
 const renderUser = () => {
@@ -1073,6 +1085,25 @@ const deleteSelectedLogs = async() => {
     state.selectedLogs = [];
     render();
   }
+};
+
+// 브랜드 슬라이드 롤링
+let _brandInterval = null;
+const startBrandSlider = () => {
+  if(_brandInterval) clearInterval(_brandInterval);
+  let cur = 0;
+  const slides = document.querySelectorAll('.brand-slide');
+  if(!slides.length) return;
+  _brandInterval = setInterval(() => {
+    const next = (cur + 1) % slides.length;
+    slides[cur].setAttribute('data-state','leaving');
+    slides[next].setAttribute('data-state','entering');
+    setTimeout(() => {
+      slides[cur].setAttribute('data-state','hidden');
+      slides[next].setAttribute('data-state','visible');
+    }, 500);
+    cur = next;
+  }, 3500);
 };
 
 // 스플래시 화면 최소 1.8초 보장 후 로그인 화면 전환
