@@ -12,14 +12,14 @@
     .splash-dot { width:10px; height:10px; border-radius:50%; background:#6366f1; animation:pulse-fade 1.2s ease-in-out infinite; }
     .splash-dot:nth-child(2) { animation-delay:.2s; }
     .splash-dot:nth-child(3) { animation-delay:.4s; }
-    /* 브랜드 슬라이드 롤링 */
-    @keyframes slide-up-in { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
-    @keyframes slide-up-out { from { transform: translateY(0); opacity:1; } to { transform: translateY(-100%); opacity:0; } }
-    .brand-slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:0 1rem; }
-    .brand-slide[data-state="entering"] { animation: slide-up-in .5s ease forwards; }
-    .brand-slide[data-state="leaving"] { animation: slide-up-out .5s ease forwards; }
-    .brand-slide[data-state="hidden"] { opacity:0; pointer-events:none; }
-    .brand-slide[data-state="visible"] { opacity:1; }
+    /* 브랜드 카드 캐러셀 (수평 슬라이드) */
+    @keyframes slide-left-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    @keyframes slide-left-out { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+    .brand-slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:0 1.5rem; }
+    .brand-slide[data-state="entering"] { animation: slide-left-in .5s cubic-bezier(.4,0,.2,1) forwards; }
+    .brand-slide[data-state="leaving"] { animation: slide-left-out .5s cubic-bezier(.4,0,.2,1) forwards; }
+    .brand-slide[data-state="hidden"] { transform: translateX(100%); opacity:0; pointer-events:none; }
+    .brand-slide[data-state="visible"] { transform: translateX(0); opacity:1; }
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -236,19 +236,39 @@ const renderHub = () => {
           <img src="/images/logo_home.jpg" alt="복지인 서류해방" class="w-52 h-auto mx-auto rounded-2xl shadow-md mb-4">
         </div>
 
-        <!-- 브랜드 슬라이드 롤링 -->
-        <div class="bg-white rounded-2xl shadow-sm mb-8 border border-indigo-100 overflow-hidden relative" style="height:72px;">
-          <div class="brand-slide" data-state="visible" data-idx="0">
-            <p class="text-base text-gray-700 font-medium">관찰일지부터 기록지, 계획서까지 — <strong class="text-indigo-600">AI가 스마트하게 처리</strong>합니다</p>
+        <!-- 브랜드 카드 캐러셀 (Stake 스타일) -->
+        <div class="mb-8">
+          <div class="rounded-2xl shadow-sm border border-indigo-100 overflow-hidden relative" style="height:88px;">
+            <div class="brand-slide" data-state="visible" data-idx="0" style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);">
+              <div class="flex items-center gap-3 w-full px-2">
+                <span class="text-2xl flex-shrink-0">🤖</span>
+                <p class="text-sm sm:text-base text-gray-700 font-medium text-left">관찰일지부터 기록지, 계획서까지 —<br><strong class="text-indigo-600">AI가 스마트하게 처리</strong>합니다</p>
+              </div>
+            </div>
+            <div class="brand-slide" data-state="hidden" data-idx="1" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);">
+              <div class="flex items-center gap-3 w-full px-2">
+                <span class="text-2xl flex-shrink-0">🔓</span>
+                <p class="text-sm sm:text-base text-gray-700 font-medium text-left">반복적인 서류업무,<br><strong class="text-emerald-600">복지인 서류해방</strong>이 해방시켜 드릴게요</p>
+              </div>
+            </div>
+            <div class="brand-slide" data-state="hidden" data-idx="2" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">
+              <div class="flex items-center gap-3 w-full px-2">
+                <span class="text-2xl flex-shrink-0">💛</span>
+                <p class="text-sm sm:text-base text-gray-700 font-medium text-left"><strong class="text-amber-700">당신의 시간과 에너지</strong>는<br>오직 이용자를 위해 쓰여야 합니다</p>
+              </div>
+            </div>
+            <div class="brand-slide" data-state="hidden" data-idx="3" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);">
+              <div class="flex items-center gap-3 w-full px-2">
+                <span class="text-2xl flex-shrink-0">🏠</span>
+                <p class="text-sm sm:text-base text-gray-700 font-medium text-left">퇴근 후에도 서류가 기다리고 있죠?<br><strong class="text-pink-600">이제 걱정 마세요</strong></p>
+              </div>
+            </div>
           </div>
-          <div class="brand-slide" data-state="hidden" data-idx="1">
-            <p class="text-base text-gray-700 font-medium">반복적인 서류업무, <strong class="text-indigo-600">복지인 서류해방</strong>이 해방시켜 드릴게요</p>
-          </div>
-          <div class="brand-slide" data-state="hidden" data-idx="2">
-            <p class="text-base text-gray-700 font-medium"><strong class="text-indigo-600">당신의 시간과 에너지</strong>는 오직 이용자를 위해 쓰여야 합니다</p>
-          </div>
-          <div class="brand-slide" data-state="hidden" data-idx="3">
-            <p class="text-base text-gray-700 font-medium">퇴근 후에도 서류가 기다리고 있죠? <strong class="text-indigo-600">이제 걱정 마세요</strong></p>
+          <div class="flex justify-center gap-1.5 mt-2" id="brand-dots">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 transition-all duration-300" data-dot="0"></span>
+            <span class="w-2 h-2 rounded-full bg-gray-300 transition-all duration-300" data-dot="1"></span>
+            <span class="w-2 h-2 rounded-full bg-gray-300 transition-all duration-300" data-dot="2"></span>
+            <span class="w-2 h-2 rounded-full bg-gray-300 transition-all duration-300" data-dot="3"></span>
           </div>
         </div>
 
@@ -1087,17 +1107,26 @@ const deleteSelectedLogs = async() => {
   }
 };
 
-// 브랜드 슬라이드 롤링
+// 브랜드 카드 캐러셀 (수평 슬라이드)
 let _brandInterval = null;
 const startBrandSlider = () => {
   if(_brandInterval) clearInterval(_brandInterval);
   let cur = 0;
   const slides = document.querySelectorAll('.brand-slide');
+  const dots = document.querySelectorAll('#brand-dots span');
   if(!slides.length) return;
+  const updateDots = (idx) => {
+    dots.forEach((d,i) => {
+      d.className = i === idx
+        ? 'w-2 h-2 rounded-full bg-indigo-400 transition-all duration-300'
+        : 'w-2 h-2 rounded-full bg-gray-300 transition-all duration-300';
+    });
+  };
   _brandInterval = setInterval(() => {
     const next = (cur + 1) % slides.length;
     slides[cur].setAttribute('data-state','leaving');
     slides[next].setAttribute('data-state','entering');
+    updateDots(next);
     setTimeout(() => {
       slides[cur].setAttribute('data-state','hidden');
       slides[next].setAttribute('data-state','visible');
