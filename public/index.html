@@ -398,10 +398,10 @@ const renderUser = () => {
 
           <!-- 옵션 토글 -->
           <div>
-            <button onclick="document.getElementById('optionsPanel').classList.toggle('hidden')" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
-              <span id="optionsToggleIcon">▶</span> 작성 옵션
+            <button onclick="const p=document.getElementById('optionsPanel');p.classList.toggle('hidden');document.getElementById('optionsToggleIcon').textContent=p.classList.contains('hidden')?'▶':'▼'" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+              <span id="optionsToggleIcon">▼</span> 작성 옵션
             </button>
-            <div id="optionsPanel" class="hidden mt-3 p-4 bg-gray-50 rounded-lg border space-y-4">
+            <div id="optionsPanel" class="mt-3 p-4 bg-gray-50 rounded-lg border space-y-4">
               <!-- 글자 수 -->
               <div>
                 <label class="block text-sm font-semibold mb-2">글자 수</label>
