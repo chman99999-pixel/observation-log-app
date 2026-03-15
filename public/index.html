@@ -372,13 +372,22 @@ const renderUser = () => {
   const todayUsage = getTodayUsageCount();
   const maxUsage = 7;
   const remaining = maxUsage - todayUsage;
-  
+  const subDaysLeft = getSubscriptionDaysLeft(state.user);
+  const subBadge = (() => {
+    if (subDaysLeft === null) return '';
+    const expDate = state.user.subscription_end;
+    if (subDaysLeft <= 3) {
+      return '<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-medium">\u23F0 만료 ' + (subDaysLeft <= 0 ? 'D-Day' : 'D-' + subDaysLeft) + ' (' + expDate + ')</span>';
+    }
+    return '<span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">구독 만료일: ' + expDate + '</span>';
+  })();
+
   document.getElementById('app').innerHTML = `
     <div class="p-4 max-w-4xl mx-auto">
       <div class="bg-white rounded-2xl shadow-xl p-6">
         <div class="flex justify-between items-start mb-4 flex-wrap gap-2">
           <div class="flex items-center gap-3"><span class="text-3xl">📝</span><h1 class="text-xl font-bold">일지해방</h1></div>
-          <div class="flex items-center gap-2"><span class="text-sm">${getGreeting()}</span><button onclick="state.tab='hub';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">🏠 홈</button><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div>
+          <div class="flex items-center gap-2 flex-col sm:flex-row"><span class="text-sm">${getGreeting()}</span>${subBadge}<div class="flex gap-1"><button onclick="state.tab='hub';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">🏠 홈</button><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div></div>
         </div>
         <div class="mb-6 p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50 rounded-lg border border-indigo-100">
           <p class="text-sm text-gray-700 text-center">감사합니다 센터 선생님들의 업무부담을 줄여드리기 위해 개발된 앱입니다.</p>
@@ -957,7 +966,7 @@ const closeUserModal = () => {
 // ============ 구독 만료일 헬퍼 ============
 
 const getSubscriptionDaysLeft = (user) => {
-  if (!user || !user.subscription_end || user.role === 'admin') return null;
+  if (!user || !user.subscription_end) return null;
   const expire = new Date(user.subscription_end);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
