@@ -86,6 +86,21 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true });
     }
 
+    // 설정 조회
+    if (action === 'getSettings') {
+      const { data, error } = await supabase.from('settings').select('*');
+      if (error) throw error;
+      return res.status(200).json(data || []);
+    }
+
+    // 설정 저장
+    if (action === 'updateSettings') {
+      const { key, value } = req.body;
+      const { error } = await supabase.from('settings').upsert({ key, value }, { onConflict: 'key' });
+      if (error) throw error;
+      return res.status(200).json({ success: true });
+    }
+
     return res.status(400).json({ error: 'Invalid action' });
     
   } catch (error) {

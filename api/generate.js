@@ -6,8 +6,14 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { activity, needAction } = req.body;
+  const { activity, needAction, model } = req.body;
   if (!activity) return res.status(400).json({ error: '활동내용을 입력해주세요.' });
+
+  const MODEL_MAP = {
+    'haiku': 'claude-haiku-4-5-20251001',
+    'sonnet': 'claude-sonnet-4-5-20241022'
+  };
+  const selectedModel = MODEL_MAP[model] || MODEL_MAP['haiku'];
 
   const prompt = `당신은 성인 발달장애인 주간활동센터 '감사합니다'의 사회복지사입니다. 아래 구어체 활동 내용을 전문적인 관찰일지로 작성해주세요.
 
@@ -58,7 +64,7 @@ ${activity}
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: selectedModel,
         max_tokens: 1000,
         messages: [{ role: "user", content: prompt }]
       })
