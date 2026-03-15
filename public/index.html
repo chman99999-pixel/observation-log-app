@@ -793,7 +793,7 @@ const renderUsers = (filteredUsers, organizations) => {
                     </div>
                   </td>
                   <td class="px-4 py-3 text-center">
-                    <button onclick='showEditUserModal(${JSON.stringify(u).replace(/'/g, "\\'")})' class="text-blue-600 hover:text-blue-800 mr-2">✏️</button>
+                    <button onclick="showEditUserModal('${u.id}')" class="text-blue-600 hover:text-blue-800 mr-2">✏️</button>
                     <button onclick="deleteUser('${u.id}')" class="text-red-600 hover:text-red-800">🗑️</button>
                   </td>
                 </tr>
@@ -902,33 +902,36 @@ const showAddUserModal = () => {
   document.body.appendChild(modal);
 };
 
-const showEditUserModal = (user) => {
+const showEditUserModal = (userId) => {
+  const user = state.users.find(u => u.id === userId);
+  if (!user) return;
   state.editingUser = user;
   const modal = document.createElement('div');
   modal.id = 'userModal';
-  modal.innerHTML = '<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)closeUserModal()">' +
-    '<div class="bg-white rounded-2xl max-w-md w-full"><div class="p-6">' +
-    '<div class="flex justify-between items-center mb-4">' +
-    '<h3 class="text-lg font-bold">✏️ 제공인력 수정</h3>' +
-    '<button onclick="closeUserModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div>' +
-    '<div class="space-y-4">' +
-    '<div><label class="block text-sm font-medium mb-1">아이디</label>' +
-    '<input id="modalUserId" class="w-full px-4 py-2 border rounded-lg bg-gray-100" disabled></div>' +
-    '<div><label class="block text-sm font-medium mb-1">비밀번호</label>' +
-    '<input id="modalUserPw" class="w-full px-4 py-2 border rounded-lg" placeholder="변경시 입력"></div>' +
-    '<div><label class="block text-sm font-medium mb-1">이름</label>' +
-    '<input id="modalUserName" class="w-full px-4 py-2 border rounded-lg"></div>' +
-    '<div><label class="block text-sm font-medium mb-1">소속기관</label>' +
-    '<input id="modalUserOrg" class="w-full px-4 py-2 border rounded-lg"></div>' +
-    '<div><label class="block text-sm font-medium mb-1">구독만료일</label>' +
-    '<input id="modalUserExpire" type="date" class="w-full px-4 py-2 border rounded-lg"></div>' +
-    '</div>' +
-    '<div class="flex gap-2 mt-6">' +
-    '<button onclick="closeUserModal()" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium">취소</button>' +
-    '<button onclick="updateUser()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium">저장</button>' +
-    '</div></div></div></div>';
+  const html = [];
+  html.push('<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)closeUserModal()">');
+  html.push('<div class="bg-white rounded-2xl max-w-md w-full"><div class="p-6">');
+  html.push('<div class="flex justify-between items-center mb-4">');
+  html.push('<h3 class="text-lg font-bold">\u270F\uFE0F 제공인력 수정</h3>');
+  html.push('<button onclick="closeUserModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div>');
+  html.push('<div class="space-y-4">');
+  html.push('<div><label class="block text-sm font-medium mb-1">아이디</label>');
+  html.push('<input id="modalUserId" class="w-full px-4 py-2 border rounded-lg bg-gray-100" disabled></div>');
+  html.push('<div><label class="block text-sm font-medium mb-1">비밀번호</label>');
+  html.push('<input id="modalUserPw" class="w-full px-4 py-2 border rounded-lg" placeholder="변경시 입력"></div>');
+  html.push('<div><label class="block text-sm font-medium mb-1">이름</label>');
+  html.push('<input id="modalUserName" class="w-full px-4 py-2 border rounded-lg"></div>');
+  html.push('<div><label class="block text-sm font-medium mb-1">소속기관</label>');
+  html.push('<input id="modalUserOrg" class="w-full px-4 py-2 border rounded-lg"></div>');
+  html.push('<div><label class="block text-sm font-medium mb-1">구독만료일</label>');
+  html.push('<input id="modalUserExpire" type="date" class="w-full px-4 py-2 border rounded-lg"></div>');
+  html.push('</div>');
+  html.push('<div class="flex gap-2 mt-6">');
+  html.push('<button onclick="closeUserModal()" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium">취소</button>');
+  html.push('<button onclick="updateUser()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium">저장</button>');
+  html.push('</div></div></div></div>');
+  modal.innerHTML = html.join('');
   document.body.appendChild(modal);
-  // 값을 프로그래밍 방식으로 설정 (템플릿 리터럴 이스케이프 문제 방지)
   document.getElementById('modalUserId').value = user.id || '';
   document.getElementById('modalUserPw').value = user.password || '';
   document.getElementById('modalUserName').value = user.name || '';
