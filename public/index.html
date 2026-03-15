@@ -395,6 +395,58 @@ const renderUser = () => {
             <textarea id="activity" class="w-full px-4 py-3 border rounded-lg h-40" ${state.loading?'disabled':''}></textarea>
           </div>
           <div class="flex items-center gap-2"><input type="checkbox" id="needAction" class="w-5 h-5"><label for="needAction" class="text-sm">처리사항 포함</label></div>
+
+          <!-- 옵션 토글 -->
+          <div>
+            <button onclick="document.getElementById('optionsPanel').classList.toggle('hidden')" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+              <span id="optionsToggleIcon">▶</span> 작성 옵션
+            </button>
+            <div id="optionsPanel" class="hidden mt-3 p-4 bg-gray-50 rounded-lg border space-y-4">
+              <!-- 글자 수 -->
+              <div>
+                <label class="block text-sm font-semibold mb-2">글자 수</label>
+                <div class="flex flex-wrap gap-2">
+                  <label class="flex items-center gap-1 text-sm"><input type="radio" name="charCount" value="120"> 짧게(120자)</label>
+                  <label class="flex items-center gap-1 text-sm"><input type="radio" name="charCount" value="140" checked> 기본(140자)</label>
+                  <label class="flex items-center gap-1 text-sm"><input type="radio" name="charCount" value="160"> 길게(160자)</label>
+                  <label class="flex items-center gap-1 text-sm"><input type="radio" name="charCount" value="custom"> 기타</label>
+                  <input type="number" id="customCharCount" class="w-20 px-2 py-1 border rounded text-sm hidden" placeholder="글자 수" min="50" max="300">
+                  <script>document.addEventListener('change', e => { if(e.target.name==='charCount') document.getElementById('customCharCount').classList.toggle('hidden', e.target.value!=='custom'); });</script>
+                </div>
+              </div>
+              <!-- 말투 -->
+              <div>
+                <label class="block text-sm font-semibold mb-2">말투 스타일</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <label class="flex items-start gap-2 p-2 rounded border bg-white cursor-pointer hover:border-indigo-400">
+                    <input type="radio" name="tone" value="default" checked class="mt-1">
+                    <div><div class="text-sm font-medium">기본</div><div class="text-xs text-gray-500">정형적이고 체계적인 문장</div></div>
+                  </label>
+                  <label class="flex items-start gap-2 p-2 rounded border bg-white cursor-pointer hover:border-indigo-400">
+                    <input type="radio" name="tone" value="warm" class="mt-1">
+                    <div><div class="text-sm font-medium">따뜻한 공감형</div><div class="text-xs text-gray-500">감정·분위기를 세심하게 묘사</div></div>
+                  </label>
+                  <label class="flex items-start gap-2 p-2 rounded border bg-white cursor-pointer hover:border-indigo-400">
+                    <input type="radio" name="tone" value="concise" class="mt-1">
+                    <div><div class="text-sm font-medium">담백한 요약형</div><div class="text-xs text-gray-500">짧은 문장, 핵심만 간결하게</div></div>
+                  </label>
+                  <label class="flex items-start gap-2 p-2 rounded border bg-white cursor-pointer hover:border-indigo-400">
+                    <input type="radio" name="tone" value="vivid" class="mt-1">
+                    <div><div class="text-sm font-medium">생동감 서술형</div><div class="text-xs text-gray-500">구체적 동작, 발화 인용</div></div>
+                  </label>
+                </div>
+              </div>
+              <!-- 전문적 견해 -->
+              <div>
+                <div class="flex items-center gap-2">
+                  <input type="checkbox" id="includeExpertView" class="w-4 h-4" checked>
+                  <label for="includeExpertView" class="text-sm font-semibold">전문적 견해 포함</label>
+                  <span class="text-xs text-gray-500">(끝맺음에 분석적 평가 추가)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button onclick="generate()" class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-4 rounded-lg" ${state.loading || remaining <= 0?'disabled':''}>${state.loading?'⏳ 작성 중...':(remaining <= 0?'⚠️ 오늘 사용량 초과':'관찰일지 작성하기')}</button>
         </div>
         <div id="result"></div>
@@ -991,30 +1043,71 @@ const logout = () => {
 
 let lastActivity = '';
 let lastNeedAction = false;
+let lastTone = 'default';
+let lastCharCount = '140';
+let lastIncludeExpertView = true;
+
+const getSelectedOptions = () => {
+  const toneEl = document.querySelector('input[name="tone"]:checked');
+  const charEl = document.querySelector('input[name="charCount"]:checked');
+  const expertEl = document.getElementById('includeExpertView');
+  const customEl = document.getElementById('customCharCount');
+
+  const tone = toneEl ? toneEl.value : 'default';
+  let charCount = charEl ? charEl.value : '140';
+  if (charCount === 'custom') charCount = customEl ? customEl.value || '140' : '140';
+  const includeExpertView = expertEl ? expertEl.checked : true;
+
+  return { tone, charCount, includeExpertView };
+};
+
+const restoreOptions = () => {
+  const toneEl = document.querySelector(`input[name="tone"][value="${lastTone}"]`);
+  if (toneEl) toneEl.checked = true;
+
+  const isCustom = !['120','140','160'].includes(lastCharCount);
+  const charVal = isCustom ? 'custom' : lastCharCount;
+  const charEl = document.querySelector(`input[name="charCount"][value="${charVal}"]`);
+  if (charEl) charEl.checked = true;
+
+  const customEl = document.getElementById('customCharCount');
+  if (customEl) {
+    if (isCustom) { customEl.classList.remove('hidden'); customEl.value = lastCharCount; }
+    else { customEl.classList.add('hidden'); }
+  }
+
+  const expertEl = document.getElementById('includeExpertView');
+  if (expertEl) expertEl.checked = lastIncludeExpertView;
+};
 
 const generate = async () => {
   const activity = document.getElementById('activity').value;
   const needAction = document.getElementById('needAction').checked;
   if(!activity) return alert('활동내용을 입력해주세요.');
-  
+
   const todayUsage = getTodayUsageCount();
   if(todayUsage >= 7) {
     alert('😊 오늘 사용 가능한 횟수(7회)를 모두 사용하셨습니다.\n\n내일 다시 이용해 주시면 감사하겠습니다.\n선생님의 노고에 항상 감사드립니다! 🙏');
     return;
   }
-  
+
+  const { tone, charCount, includeExpertView } = getSelectedOptions();
   lastActivity = activity;
   lastNeedAction = needAction;
-  state.loading = true; 
+  lastTone = tone;
+  lastCharCount = charCount;
+  lastIncludeExpertView = includeExpertView;
+  state.loading = true;
   render();
   document.getElementById('activity').value = activity;
   document.getElementById('needAction').checked = needAction;
-  
+  restoreOptions();
+
   try {
     const res = await fetch('/api/generate', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({activity, needAction, model: state.aiModel})
+      body: JSON.stringify({activity, needAction, model: state.aiModel, tone, charCount: parseInt(charCount), includeExpertView})
     });
     const data = await res.json();
     if(data.error) {
@@ -1049,16 +1142,18 @@ const generate = async () => {
     showResult('⚠️ 네트워크 오류: ' + e.message, '', '');
   }
   
-  state.loading = false; 
+  state.loading = false;
   render();
   document.getElementById('activity').value = lastActivity;
   document.getElementById('needAction').checked = lastNeedAction;
+  restoreOptions();
 };
 
 const regenerate = () => {
   if(!lastActivity) return alert('이전 입력 내용이 없습니다.');
   document.getElementById('activity').value = lastActivity;
   document.getElementById('needAction').checked = lastNeedAction;
+  restoreOptions();
   generate();
 };
 
