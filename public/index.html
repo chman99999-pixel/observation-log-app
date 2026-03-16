@@ -1031,6 +1031,7 @@ const login = () => {
     
     state.user = user;
     state.tab = 'hub';
+    sessionStorage.setItem('loginUserId', user.id);
     render();
 
     // 구독 만료 3일 전부터 알림 팝업
@@ -1043,8 +1044,9 @@ const login = () => {
   }
 };
 
-const logout = () => { 
-  state.user = null; 
+const logout = () => {
+  sessionStorage.removeItem('loginUserId');
+  state.user = null;
   state.tab = 'dashboard';
   state.logFilter = { startDate: '', endDate: '', userId: '', organization: '' };
   state.userFilter = { search: '', organization: '' };
@@ -1370,6 +1372,16 @@ document.addEventListener('change', e => {
 // 스플래시 화면 최소 1.8초 보장 후 로그인 화면 전환
 const _splashStart = Date.now();
 loadData().then(() => {
+  const savedId = sessionStorage.getItem('loginUserId');
+  if (savedId) {
+    const savedUser = state.users.find(u => u.id === savedId);
+    if (savedUser) {
+      state.user = savedUser;
+      state.tab = 'hub';
+    } else {
+      sessionStorage.removeItem('loginUserId');
+    }
+  }
   const elapsed = Date.now() - _splashStart;
   const minMs = 1800;
   setTimeout(render, Math.max(0, minMs - elapsed));
