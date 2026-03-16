@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
   const MODEL_MAP = {
     'haiku': 'claude-haiku-4-5-20251001',
-    'sonnet': 'claude-sonnet-4-5-20241022'
+    'sonnet': 'claude-sonnet-4-6'
   };
   const selectedModel = MODEL_MAP[model] || MODEL_MAP['haiku'];
 
