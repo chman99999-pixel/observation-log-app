@@ -525,7 +525,7 @@ const getFilteredLogs = () => {
 };
 
 const getFilteredUsers = () => {
-  let users = state.users.filter(u => u.role === 'user');
+  let users = [...state.users];
   
   // 검색어 필터 (이름 또는 아이디)
   if (state.userFilter.search) {
@@ -551,7 +551,7 @@ const getUniqueOrganizations = () => {
 
 const renderAdmin = () => {
   const stats = getStats();
-  const users = state.users.filter(u => u.role === 'user');
+  const users = [...state.users];
   const filteredLogs = getFilteredLogs();
   const filteredUsers = getFilteredUsers();
   const organizations = getUniqueOrganizations();
@@ -791,7 +791,7 @@ const renderUsers = (filteredUsers, organizations) => {
               const isExpired = u.subscription_end && new Date(u.subscription_end) < new Date();
               return `
                 <tr class="hover:bg-gray-50 ${isExpired ? 'bg-red-50' : ''}">
-                  <td class="px-4 py-3 font-medium">${u.name}</td>
+                  <td class="px-4 py-3 font-medium">${u.name}${u.role === 'admin' ? ' <span class="text-xs bg-indigo-600 text-white px-1.5 py-0.5 rounded-full">관리자</span>' : ''}</td>
                   <td class="px-4 py-3 text-gray-600">${u.id}</td>
                   <td class="px-4 py-3">${u.organization || '-'}</td>
                   <td class="px-4 py-3 ${isExpired ? 'text-red-600 font-semibold' : ''}">${u.subscription_end || '-'} ${isExpired ? '(만료)' : ''}</td>
@@ -803,7 +803,7 @@ const renderUsers = (filteredUsers, organizations) => {
                   </td>
                   <td class="px-4 py-3 text-center">
                     <button onclick="showEditUserModal('${u.id}')" class="text-blue-600 hover:text-blue-800 mr-2">✏️</button>
-                    <button onclick="deleteUser('${u.id}')" class="text-red-600 hover:text-red-800">🗑️</button>
+                    ${u.role !== 'admin' ? `<button onclick="deleteUser('${u.id}')" class="text-red-600 hover:text-red-800">🗑️</button>` : ''}
                   </td>
                 </tr>
               `;
