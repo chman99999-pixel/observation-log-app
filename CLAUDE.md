@@ -1,0 +1,70 @@
+# 일지해방 (Observation Log App) - 프로젝트 메모
+
+## 프로젝트 개요
+- **앱 이름**: 일지해방 (복지인 서류해방 시리즈 중 하나)
+- **용도**: 성인 발달장애인 주간활동센터 '감사합니다'의 관찰일지 자동 작성
+- **GitHub**: https://github.com/chman99999-pixel/observation-log-app
+- **배포**: Vercel (자동 배포)
+- **DB**: Supabase (PostgreSQL)
+- **AI**: Anthropic Claude API (Haiku 4.5 / Sonnet 4.6)
+
+## 기술 스택
+- Frontend: Vanilla JS SPA (single index.html), Tailwind CSS
+- Backend: Vercel Serverless Functions (Node.js)
+- 프레임워크 없음 (React/Vue 등 미사용)
+
+## 주요 파일 구조
+```
+observation-log-app/
+├── api/
+│   ├── generate.js        # Claude API 호출 (관찰일지 생성)
+│   ├── db.js              # Supabase DB 작업
+│   └── getAppConfig.js    # 앱 설정 조회
+├── public/
+│   └── index.html         # 전체 SPA (약 1400줄)
+├── .github/workflows/
+│   └── keep-alive.yml     # Streamlit 앱 슬립 방지 워크플로우
+├── package.json
+└── vercel.json
+```
+
+## API 모델 설정 (api/generate.js)
+```javascript
+const MODEL_MAP = {
+  'haiku': 'claude-haiku-4-5-20251001',
+  'sonnet': 'claude-sonnet-4-6'
+};
+```
+- 프론트엔드에서 'haiku' 또는 'sonnet' 키를 전송하면 MODEL_MAP에서 변환
+
+## 수정 이력 (2026-03-16)
+1. **모델 ID 오류 수정**: `claude-sonnet-4-6-20250514` (잘못됨) → `claude-sonnet-4-6`
+2. **관리자 페이지 제공인력관리**: 관리자 계정도 표시되도록 변경, admin 뱃지 추가, 삭제 버튼 숨김
+3. **로그인 세션 유지**: sessionStorage 기반 세션 저장/복원/삭제 구현
+4. **작성 예시 모달 업데이트**: 4가지 말투 스타일 비교, 옵션 안내 추가, 버튼명 "작성 예시 & 옵션 안내"로 변경
+5. **가독성 개선**: 노안 선생님 위해 폰트 크기 2단계 증가, 행간/패딩 확대
+6. **Streamlit 슬립 방지**: GitHub Actions 워크플로우 (2일마다 KST 새벽 3시 = UTC 18:00)
+7. **30일전 로그 삭제 기능**: 관리자 > 로그 관리 탭에 버튼 추가, 기존 deleteLogs API 재활용
+
+## Streamlit 앱 keep-alive 대상
+- 기록지해방: https://jukgan-jaripdong-app-93jqyjotebw9s6ykzzncff.streamlit.app/
+- 계획서해방2: https://m83g448p3tjqw9tz9nszle.streamlit.app/
+
+## 관찰일지 말투 옵션
+- 기본 (default): 정형적, 체계적
+- 따뜻한 공감형 (warm): 감정/분위기 세심 묘사
+- 담백한 요약형 (concise): 짧은 문장, 사실 위주
+- 생동감 있는 서술형 (vivid): 구체적 동작, 직접 인용
+
+## 날짜 형식 주의
+- 로그 날짜는 `new Date().toLocaleDateString('ko-KR')` 형식으로 저장됨
+- 저장 형식: `2026. 3. 16.` (한국어, 점+공백 구분)
+- 날짜 비교 시 반드시 `parseKoreanDate()` 함수로 Date 객체 변환 후 비교해야 함
+- ISO 형식(`YYYY-MM-DD`)과 직접 문자열 비교하면 안 됨
+
+## 주의사항
+- git push로 `.github/workflows/` 파일 수정 시 OAuth 토큰에 `workflow` scope 필요
+  - 현재 토큰에 해당 권한 없음 → Chrome 브라우저에서 GitHub 직접 편집 필요
+  - 또는 `gh auth refresh -s workflow` 실행 (터미널에서 직접)
+- 일지 작성 시 객관적 사실만 기록 (주관적 표현 사용 금지)
+- 센터 선생님들 노안 고려하여 UI 가독성 중요
