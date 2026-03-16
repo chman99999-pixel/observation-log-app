@@ -704,7 +704,10 @@ const renderLogs = (filteredLogs, users, organizations) => {
     <div class="space-y-4">
       <div class="flex justify-between items-center flex-wrap gap-2">
         <h2 class="text-lg font-bold">📋 로그 관리 (${filteredLogs.length}건)</h2>
-        <button onclick="loadData()" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm">🔄 새로고침</button>
+        <div class="flex gap-2">
+          <button onclick="deleteOldLogs()" class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-sm font-medium">🗑️ 30일전 로그 삭제</button>
+          <button onclick="loadData()" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm">🔄 새로고침</button>
+        </div>
       </div>
       
       <!-- 필터 -->
@@ -1378,6 +1381,32 @@ const deleteSelectedLogs = async() => {
     state.logs = state.logs.filter(l => !state.selectedLogs.includes(l.id));
     state.selectedLogs = [];
     render();
+  }
+};
+
+// 30일 이전 로그 삭제
+const deleteOldLogs = async() => {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 30);
+  const beforeDate = cutoff.toISOString().split('T')[0];
+
+  // 삭제 대상 건수 미리 확인
+  const oldLogs = state.logs.filter(l => l.date < beforeDate);
+  if (oldLogs.length === 0) {
+    alert('30일 이전 로그가 없습니다.');
+    return;
+  }
+
+  if(confirm(`⚠️ 30일 이전 로그 삭제\n\n${beforeDate} 이전에 작성된 로그 ${oldLogs.length}건을 삭제합니다.\n\n삭제된 로그는 복구할 수 없습니다.\n계속하시겠습니까?`)) {
+    try {
+      const result = await api('deleteOldLogs', { beforeDate });
+      state.logs = state.logs.filter(l => l.date >= beforeDate);
+      state.selectedLogs = [];
+      render();
+      alert(`✅ ${oldLogs.length}건의 로그가 삭제되었습니다.`);
+    } catch(e) {
+      alert('삭제 중 오류가 발생했습니다: ' + e.message);
+    }
   }
 };
 

@@ -86,6 +86,26 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true });
     }
 
+    // 30일 이전 로그 삭제
+    if (action === 'deleteOldLogs') {
+      const { beforeDate } = req.body;
+      // 먼저 삭제 대상 건수 조회
+      const { data: targetLogs, error: countError } = await supabase
+        .from('logs')
+        .select('id')
+        .lt('date', beforeDate);
+      if (countError) throw countError;
+
+      const count = targetLogs?.length || 0;
+      if (count === 0) {
+        return res.status(200).json({ success: true, deletedCount: 0 });
+      }
+
+      const { error } = await supabase.from('logs').delete().lt('date', beforeDate);
+      if (error) throw error;
+      return res.status(200).json({ success: true, deletedCount: count });
+    }
+
     // 설정 조회
     if (action === 'getSettings') {
       const { data, error } = await supabase.from('settings').select('*');
