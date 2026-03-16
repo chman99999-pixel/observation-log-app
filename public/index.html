@@ -1384,23 +1384,40 @@ const deleteSelectedLogs = async() => {
   }
 };
 
+// 날짜 형식 변환: 'YYYY. M. D.' (ko-KR) → Date 객체
+const parseKoreanDate = (dateStr) => {
+  if (!dateStr) return null;
+  const cleaned = dateStr.replace(/\./g, '').replace(/\s+/g, ' ').trim();
+  const parts = cleaned.split(/[\s\-\/]+/);
+  if (parts.length >= 3) {
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  }
+  return new Date(dateStr);
+};
+
 // 30일 이전 로그 삭제
 const deleteOldLogs = async() => {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 30);
-  const beforeDate = cutoff.toISOString().split('T')[0];
+  cutoff.setHours(0, 0, 0, 0);
 
-  // 삭제 대상 건수 미리 확인
-  const oldLogs = state.logs.filter(l => l.date < beforeDate);
+  // 한국어 날짜 형식('2026. 2. 9.')과 비교
+  const oldLogs = state.logs.filter(l => {
+    const logDate = parseKoreanDate(l.date);
+    return logDate && logDate < cutoff;
+  });
+
   if (oldLogs.length === 0) {
     alert('30일 이전 로그가 없습니다.');
     return;
   }
 
-  if(confirm(`⚠️ 30일 이전 로그 삭제\n\n${beforeDate} 이전에 작성된 로그 ${oldLogs.length}건을 삭제합니다.\n\n삭제된 로그는 복구할 수 없습니다.\n계속하시겠습니까?`)) {
+  const cutoffDisplay = `${cutoff.getFullYear()}. ${cutoff.getMonth()+1}. ${cutoff.getDate()}.`;
+  if(confirm(`⚠️ 30일 이전 로그 삭제\n\n${cutoffDisplay} 이전에 작성된 로그 ${oldLogs.length}건을 삭제합니다.\n\n삭제된 로그는 복구할 수 없습니다.\n계속하시겠습니까?`)) {
     try {
-      const result = await api('deleteOldLogs', { beforeDate });
-      state.logs = state.logs.filter(l => l.date >= beforeDate);
+      const oldIds = oldLogs.map(l => l.id);
+      await api('deleteLogs', { ids: oldIds });
+      state.logs = state.logs.filter(l => !oldIds.includes(l.id));
       state.selectedLogs = [];
       render();
       alert(`✅ ${oldLogs.length}건의 로그가 삭제되었습니다.`);
