@@ -82,9 +82,15 @@ export default async function handler(req, res) {
 
     // ====== 회원가입 ======
     if (action === 'register') {
-      const { id, password, name, organization } = req.body;
-      if (!id || !password || !name) {
-        return res.status(400).json({ error: '아이디, 비밀번호, 이름은 필수입니다.' });
+      const { id, password, name, email, organization } = req.body;
+      if (!id || !password || !name || !email) {
+        return res.status(400).json({ error: '아이디, 비밀번호, 이름, 이메일은 필수입니다.' });
+      }
+
+      // 이메일 형식 검증
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: '올바른 이메일 형식이 아닙니다.' });
       }
 
       // 아이디 중복 체크
@@ -98,6 +104,17 @@ export default async function handler(req, res) {
         return res.status(409).json({ error: '이미 사용 중인 아이디입니다.' });
       }
 
+      // 이메일 중복 체크
+      const { data: existingEmail } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+      if (existingEmail) {
+        return res.status(409).json({ error: '이미 사용 중인 이메일입니다.' });
+      }
+
       // 무료체험 10일
       const trialEnd = new Date();
       trialEnd.setDate(trialEnd.getDate() + 10);
@@ -108,6 +125,7 @@ export default async function handler(req, res) {
         id,
         password: hashed,
         name,
+        email,
         role: 'user',
         organization: organization || '',
         subscription_end
@@ -115,7 +133,7 @@ export default async function handler(req, res) {
 
       if (error) throw error;
 
-      const newUser = { id, name, role: 'user', organization: organization || '', subscription_end };
+      const newUser = { id, name, email, role: 'user', organization: organization || '', subscription_end };
       const token = createToken(newUser);
       return res.status(201).json({ token, user: newUser });
     }
