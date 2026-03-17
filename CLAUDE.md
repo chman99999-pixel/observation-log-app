@@ -62,6 +62,19 @@ const MODEL_MAP = {
 - 날짜 비교 시 반드시 `parseKoreanDate()` 함수로 Date 객체 변환 후 비교해야 함
 - ISO 형식(`YYYY-MM-DD`)과 직접 문자열 비교하면 안 됨
 
+## SaaS 전환 프로젝트 (진행 중)
+- **목표**: 복서방 시리즈를 포트원 V2 결제 기반 구독형 SaaS로 전환
+- **요금제**: 무료체험 10일 → 월간 6,000원 / 연간 60,000원
+- **작업 브랜치**: `feature/saas` (main은 현재 운영 중인 안정 버전)
+- **안전 태그**: `v1.0-stable` (롤백 지점)
+- **핵심 원칙**:
+  1. 무중단 서비스 - 선생님들 사용 중, 서비스 중단 절대 불가
+  2. 하위 호환 - 기존 기능 깨뜨리지 않고 점진적 추가
+  3. 롤백 가능 - Phase별 git tag, Vercel 롤백 이중 안전망
+- **Phase**: 보안 기반 → DB 스키마 → 포트원 결제 → 정기결제 → 법적 요구사항 → 레거시 제거
+- **결제**: 포트원(PortOne) V2
+- **추가 패키지**: bcryptjs, jsonwebtoken (Phase 1에서 추가)
+
 ## 주의사항
 - git push로 `.github/workflows/` 파일 수정 시 OAuth 토큰에 `workflow` scope 필요
   - 현재 토큰에 해당 권한 없음 → Chrome 브라우저에서 GitHub 직접 편집 필요

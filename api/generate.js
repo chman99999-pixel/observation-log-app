@@ -1,10 +1,18 @@
+import { authenticateRequest } from './_utils/auth.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // JWT 인증 체크 (전환기: 토큰 없어도 허용, 로그만 남김)
+  const authUser = authenticateRequest(req);
+  if (!authUser) {
+    console.warn('generate.js: 인증되지 않은 요청');
+  }
 
   const { activity, needAction, model, tone, charCount, includeExpertView } = req.body;
   if (!activity) return res.status(400).json({ error: '활동내용을 입력해주세요.' });

@@ -50,10 +50,14 @@ let state = {
   aiModel: 'haiku'
 };
 
+let authToken = sessionStorage.getItem('authToken') || null;
+
 const api = async (action, body = null) => {
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
   const res = await fetch(`/api/db?action=${action}`, {
     method: body ? 'POST' : 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: body ? JSON.stringify(body) : null
   });
   return res.json();
@@ -237,11 +241,23 @@ const render = () => {
           </div>
 
           <!-- 로그인 폼 -->
-          <div class="space-y-3">
+          <div id="loginForm" class="space-y-3">
             <div><label class="block text-sm font-medium mb-1 text-gray-700">아이디</label><input id="loginId" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="아이디를 입력하세요"/></div>
             <div><label class="block text-sm font-medium mb-1 text-gray-700">비밀번호</label><input id="loginPw" type="password" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="비밀번호를 입력하세요"/></div>
             <p id="loginErr" class="text-red-500 text-sm hidden">아이디 또는 비밀번호가 올바르지 않습니다.</p>
             <button onclick="login()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3 rounded-xl mt-1 transition-colors">로그인</button>
+            <p class="text-center text-sm text-gray-500 mt-2">계정이 없으신가요? <button onclick="showRegisterForm()" class="text-indigo-600 hover:text-indigo-800 font-medium">회원가입</button></p>
+          </div>
+
+          <!-- 회원가입 폼 (숨김) -->
+          <div id="registerForm" class="space-y-3 hidden">
+            <div><label class="block text-sm font-medium mb-1 text-gray-700">아이디</label><input id="regId" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="아이디를 입력하세요"/></div>
+            <div><label class="block text-sm font-medium mb-1 text-gray-700">비밀번호</label><input id="regPw" type="password" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="비밀번호를 입력하세요"/></div>
+            <div><label class="block text-sm font-medium mb-1 text-gray-700">이름</label><input id="regName" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="이름을 입력하세요"/></div>
+            <div><label class="block text-sm font-medium mb-1 text-gray-700">소속기관</label><input id="regOrg" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="소속기관명 (선택)"/></div>
+            <p id="regErr" class="text-red-500 text-sm hidden"></p>
+            <button onclick="register()" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-3 rounded-xl mt-1 transition-colors">회원가입 (10일 무료체험)</button>
+            <p class="text-center text-sm text-gray-500 mt-2">이미 계정이 있으신가요? <button onclick="showLoginForm()" class="text-indigo-600 hover:text-indigo-800 font-medium">로그인</button></p>
           </div>
 
           <p class="text-center text-xs text-gray-500 mt-6">💙 감사합니다 주간활동센터 &nbsp;|&nbsp; 개발자: 천만석</p>
@@ -983,7 +999,7 @@ const showEditUserModal = (userId) => {
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">비밀번호</label>
-              <input id="modalUserPw" class="w-full px-4 py-2 border rounded-lg" value="${user.password}" placeholder="변경시 입력">
+              <input id="modalUserPw" type="password" class="w-full px-4 py-2 border rounded-lg" placeholder="변경시 새 비밀번호 입력">
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">이름</label>
@@ -1059,50 +1075,106 @@ const showSubscriptionAlert = (daysLeft, subscriptionEnd) => {
 
 // ============ API 호출 함수들 ============
 
-const login = () => {
+const login = async () => {
   const id = document.getElementById('loginId').value;
   const pw = document.getElementById('loginPw').value;
-  const user = state.users.find(u => u.id === id && u.password === pw);
-  
-  if(user) {
-    // 관리자는 만료일 체크 안함
-    if(user.role !== 'admin') {
-      // 구독만료일 체크
-      if(user.subscription_end) {
-        const expireDate = new Date(user.subscription_end);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        if(expireDate < today) {
-          alert('😢 구독이 만료되었습니다.\n\n구독 연장을 원하시면 관리자에게 문의해주세요.');
-          return;
-        }
+  const errEl = document.getElementById('loginErr');
+
+  if (!id || !pw) { errEl.classList.remove('hidden'); return; }
+
+  try {
+    const res = await fetch('/api/auth?action=login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, password: pw })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (data.error === 'subscription_expired') {
+        alert('😢 구독이 만료되었습니다.\n\n구독 연장을 원하시면 관리자에게 문의해주세요.');
+        return;
       }
+      errEl.classList.remove('hidden');
+      return;
     }
-    
-    state.user = user;
+
+    authToken = data.token;
+    sessionStorage.setItem('authToken', authToken);
+    state.user = data.user;
     state.tab = 'hub';
-    sessionStorage.setItem('loginUserId', user.id);
     render();
 
     // 구독 만료 3일 전부터 알림 팝업
-    const daysLeft = getSubscriptionDaysLeft(user);
+    const daysLeft = getSubscriptionDaysLeft(data.user);
     if (daysLeft !== null && daysLeft <= 3) {
-      setTimeout(() => showSubscriptionAlert(daysLeft, user.subscription_end), 300);
+      setTimeout(() => showSubscriptionAlert(daysLeft, data.user.subscription_end), 300);
     }
-  } else {
-    document.getElementById('loginErr').classList.remove('hidden');
+  } catch (e) {
+    console.error('Login error:', e);
+    errEl.classList.remove('hidden');
+  }
+};
+
+const showRegisterForm = () => {
+  document.getElementById('loginForm').classList.add('hidden');
+  document.getElementById('registerForm').classList.remove('hidden');
+};
+
+const showLoginForm = () => {
+  document.getElementById('registerForm').classList.add('hidden');
+  document.getElementById('loginForm').classList.remove('hidden');
+};
+
+const register = async () => {
+  const id = document.getElementById('regId').value.trim();
+  const pw = document.getElementById('regPw').value;
+  const name = document.getElementById('regName').value.trim();
+  const org = document.getElementById('regOrg').value.trim();
+  const errEl = document.getElementById('regErr');
+
+  if (!id || !pw || !name) {
+    errEl.textContent = '아이디, 비밀번호, 이름은 필수입니다.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth?action=register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, password: pw, name, organization: org })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.error || '회원가입에 실패했습니다.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    authToken = data.token;
+    sessionStorage.setItem('authToken', authToken);
+    state.user = data.user;
+    state.users.push(data.user);
+    state.tab = 'hub';
+    render();
+  } catch (e) {
+    console.error('Register error:', e);
+    errEl.textContent = '서버 연결에 실패했습니다.';
+    errEl.classList.remove('hidden');
   }
 };
 
 const logout = () => {
-  sessionStorage.removeItem('loginUserId');
+  authToken = null;
+  sessionStorage.removeItem('authToken');
   state.user = null;
   state.tab = 'dashboard';
   state.logFilter = { startDate: '', endDate: '', userId: '', organization: '' };
   state.userFilter = { search: '', organization: '' };
   state.selectedLogs = [];
-  render(); 
+  render();
 };
 
 let lastActivity = '';
@@ -1168,9 +1240,11 @@ const generate = async () => {
   restoreOptions();
 
   try {
+    const genHeaders = {'Content-Type': 'application/json'};
+    if (authToken) genHeaders['Authorization'] = `Bearer ${authToken}`;
     const res = await fetch('/api/generate', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: genHeaders,
       body: JSON.stringify({activity, needAction, model: state.aiModel, tone, charCount: parseInt(charCount), includeExpertView})
     });
     const data = await res.json();
@@ -1307,7 +1381,7 @@ const addUser = async() => {
   if(state.users.find(u => u.id === id)) return alert('이미 존재하는 아이디입니다.');
   
   await api('addUser', { id, password: pw, name, role: 'user', organization: org, subscription_end: expire });
-  state.users.push({ id, password: pw, name, role: 'user', organization: org, subscription_end: expire });
+  state.users.push({ id, name, role: 'user', organization: org, subscription_end: expire });
   closeUserModal();
   render();
 };
@@ -1323,7 +1397,6 @@ const updateUser = async() => {
   
   const user = state.users.find(u => u.id === id);
   if(user) {
-    if(pw) user.password = pw;
     if(name) user.name = name;
     if(org) user.organization = org;
     if(expire) user.subscription_end = expire;
@@ -1465,17 +1538,29 @@ document.addEventListener('change', e => {
 
 // 스플래시 화면 최소 1.8초 보장 후 로그인 화면 전환
 const _splashStart = Date.now();
-loadData().then(() => {
-  const savedId = sessionStorage.getItem('loginUserId');
-  if (savedId) {
-    const savedUser = state.users.find(u => u.id === savedId);
-    if (savedUser) {
-      state.user = savedUser;
+
+const restoreSession = async () => {
+  if (!authToken) return;
+  try {
+    const res = await fetch('/api/auth?action=verify', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      state.user = data.user;
       state.tab = 'hub';
     } else {
-      sessionStorage.removeItem('loginUserId');
+      authToken = null;
+      sessionStorage.removeItem('authToken');
     }
+  } catch {
+    authToken = null;
+    sessionStorage.removeItem('authToken');
   }
+};
+
+loadData().then(() => restoreSession()).then(() => {
   const elapsed = Date.now() - _splashStart;
   const minMs = 1800;
   setTimeout(render, Math.max(0, minMs - elapsed));
