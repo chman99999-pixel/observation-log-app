@@ -268,11 +268,14 @@ const renderLanding = () => {
             <span class="text-gray-800">서류는 AI에게,</span><br>
             <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">선생님은 이용자에게</span>
           </h1>
-          <p class="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-10 land-fadeUp land-delay-1 leading-relaxed">
-            관찰일지, 기록지, 계획서까지 —<br class="sm:hidden">
-            말하듯 입력하면 <strong class="text-indigo-600">AI가 전문적인 서류로</strong> 변환합니다
+          <p class="text-xl sm:text-2xl text-gray-600 max-w-2xl mx-auto mb-4 land-fadeUp land-delay-1 leading-relaxed font-medium">
+            "선생님, <strong class="text-indigo-600">복서방</strong>한테 맡겨보세요.<br>
+            말만 해도 서류가 완성돼요."
           </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center land-fadeUp land-delay-2">
+          <p class="text-base sm:text-lg text-gray-400 max-w-xl mx-auto mb-10 land-fadeUp land-delay-2">
+            관찰일지, 기록지, 계획서까지 — AI가 전문적인 서류로 변환합니다
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center land-fadeUp land-delay-3">
             <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-2xl transition-all shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/35 hover:-translate-y-0.5 relative overflow-hidden">
               <span class="relative z-10">10일 무료체험 시작하기</span>
               <div class="absolute inset-0 land-shimmer"></div>
@@ -325,13 +328,39 @@ const renderLanding = () => {
         </div>
       </section>
 
+      <!-- 복서방 브랜드 섹션 -->
+      <section class="relative z-10 py-14">
+        <div class="max-w-4xl mx-auto px-6">
+          <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 sm:p-10 text-center shadow-xl">
+            <p class="text-2xl sm:text-3xl font-bold text-white leading-snug mb-4">
+              "서방은 못 해줘도<br><span class="text-yellow-300">복서방</span>은 해줍니다"
+            </p>
+            <p class="text-lg text-indigo-100 mb-6">서류만큼은요 😄</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+              <div class="bg-white/15 backdrop-blur-sm rounded-2xl p-4">
+                <p class="text-3xl mb-2">💑</p>
+                <p class="text-base text-white leading-relaxed">퇴근 후 서류 걱정,<br>이제 <strong class="text-yellow-200">복서방</strong>이<br>기다리고 있어요</p>
+              </div>
+              <div class="bg-white/15 backdrop-blur-sm rounded-2xl p-4">
+                <p class="text-3xl mb-2">👨‍💼</p>
+                <p class="text-base text-white leading-relaxed">능력 있는 사위 하나<br>두신 것처럼,<br><strong class="text-yellow-200">서류 다 챙겨</strong>드립니다</p>
+              </div>
+              <div class="bg-white/15 backdrop-blur-sm rounded-2xl p-4">
+                <p class="text-3xl mb-2">✨</p>
+                <p class="text-base text-white leading-relaxed">말만 하세요.<br><strong class="text-yellow-200">복서방</strong>이<br>척척 해드릴게요</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- 서비스 소개 섹션 -->
       <section id="features" class="relative z-10 py-16">
         <div class="max-w-6xl mx-auto px-6">
           <div class="text-center mb-12">
             <h2 class="text-3xl sm:text-4xl font-bold mb-4">
-              <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">복지인 서류해방</span>
-              <span class="text-gray-800">이 해결합니다</span>
+              <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">복서방</span>
+              <span class="text-gray-800">이 이렇게 도와드립니다</span>
             </h2>
             <p class="text-gray-500 text-xl">성인 발달장애인 주간활동센터 맞춤 AI 서류 자동화</p>
           </div>
@@ -460,10 +489,11 @@ const renderLanding = () => {
       <!-- CTA 섹션 -->
       <section class="relative z-10 py-20 bg-gradient-to-r from-indigo-600 to-purple-600">
         <div class="max-w-3xl mx-auto px-6 text-center">
-          <h2 class="text-3xl sm:text-4xl font-bold text-white mb-5">
-            지금 바로 시작해보세요
+          <h2 class="text-3xl sm:text-4xl font-bold text-white mb-3">
+            복서방한테 맡겨보세요
           </h2>
-          <p class="text-xl text-indigo-100 mb-8">10일 무료체험 · 카드정보 불필요 · 1분이면 가입 완료</p>
+          <p class="text-xl sm:text-2xl text-yellow-200 font-medium mb-3">서류는 복서방이, 선생님은 이용자에게</p>
+          <p class="text-lg text-indigo-100 mb-8">10일 무료체험 · 카드정보 불필요 · 1분이면 가입 완료</p>
           <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="group px-10 py-4 bg-white hover:bg-gray-50 text-indigo-700 font-bold text-lg rounded-2xl transition-all shadow-xl hover:-translate-y-0.5">
             무료체험 시작하기 →
           </button>
