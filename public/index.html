@@ -271,6 +271,7 @@ const render = () => {
     return;
   }
   if(state.tab === 'hub') { renderHub(); return; }
+  if(state.tab === 'subscription') { renderSubscription(); return; }
   if(state.user.role === 'admin') { renderAdmin(); } else { renderUser(); }
 };
 
@@ -310,7 +311,8 @@ const renderHub = () => {
               <span class="text-sm text-gray-500">${greet}</span>
               ${subBadge}
             </div>
-            <button onclick="logout()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium transition-colors">🚪 로그아웃</button>
+            <button onclick="state.tab='subscription';render()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium transition-colors">💳 구독</button>
+            <button onclick="logout()" class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-lg text-sm font-medium transition-colors">🚪 로그아웃</button>
           </div>
         </div>
       </header>
@@ -441,6 +443,140 @@ const renderHub = () => {
   setTimeout(startBrandSlider, 100);
 };
 
+const renderSubscription = () => {
+  const subDaysLeft = getSubscriptionDaysLeft(state.user);
+  const expDate = state.user.subscription_end || '';
+
+  // 구독 상태 판별
+  const getSubStatus = () => {
+    if (!expDate) return { label: '미구독', color: 'gray', icon: '⚪', bg: 'from-gray-50 to-gray-100', border: 'border-gray-200' };
+    if (subDaysLeft === null) return { label: '구독 정보 없음', color: 'gray', icon: '⚪', bg: 'from-gray-50 to-gray-100', border: 'border-gray-200' };
+    if (subDaysLeft <= 0) return { label: '만료됨', color: 'red', icon: '🔴', bg: 'from-red-50 to-red-100', border: 'border-red-200' };
+    if (subDaysLeft <= 3) return { label: '곧 만료', color: 'amber', icon: '🟡', bg: 'from-amber-50 to-amber-100', border: 'border-amber-200' };
+    if (subDaysLeft <= 10) return { label: '체험 중', color: 'blue', icon: '🔵', bg: 'from-blue-50 to-blue-100', border: 'border-blue-200' };
+    return { label: '구독 중', color: 'green', icon: '🟢', bg: 'from-green-50 to-green-100', border: 'border-green-200' };
+  };
+  const status = getSubStatus();
+  const dDayText = subDaysLeft !== null ? (subDaysLeft <= 0 ? 'D-Day' : `D-${subDaysLeft}`) : '-';
+
+  document.getElementById('app').innerHTML = `
+    <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+
+      <!-- 상단 헤더 -->
+      <header class="bg-white shadow-sm px-6 py-3">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <img src="/images/logo_home_only.jpg" alt="로고" class="h-10 w-auto rounded">
+            <span class="font-bold text-indigo-800 text-lg">구독 관리</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="state.tab='hub';render()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium transition-colors">🏠 홈</button>
+            <button onclick="logout()" class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-lg text-sm font-medium transition-colors">🚪 로그아웃</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+
+        <!-- 현재 구독 상태 카드 -->
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+          <div class="bg-gradient-to-r ${status.bg} px-6 py-4 border-b ${status.border}">
+            <h2 class="text-lg font-bold text-gray-800">📋 나의 구독 현황</h2>
+          </div>
+          <div class="p-6">
+            <div class="flex flex-col sm:flex-row items-center gap-6">
+              <div class="flex-1 text-center sm:text-left">
+                <div class="flex items-center justify-center sm:justify-start gap-2 mb-2">
+                  <span class="text-2xl">${status.icon}</span>
+                  <span class="text-xl font-bold text-${status.color}-600">${status.label}</span>
+                </div>
+                <p class="text-sm text-gray-500">${state.user.name} 선생님의 구독 상태입니다</p>
+              </div>
+              <div class="flex gap-4">
+                <div class="text-center px-5 py-3 bg-gray-50 rounded-xl">
+                  <p class="text-xs text-gray-400 mb-1">만료일</p>
+                  <p class="text-base font-bold text-gray-700">${expDate || '없음'}</p>
+                </div>
+                <div class="text-center px-5 py-3 bg-gray-50 rounded-xl">
+                  <p class="text-xs text-gray-400 mb-1">남은 일수</p>
+                  <p class="text-base font-bold text-${status.color}-600">${dDayText}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 요금제 비교 -->
+        <div>
+          <h2 class="text-lg font-bold text-gray-800 mb-4">💎 요금제 선택</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            <!-- 월간 플랜 -->
+            <div class="bg-white rounded-2xl shadow-md border-2 border-gray-100 hover:border-indigo-200 transition-all p-6 flex flex-col">
+              <div class="mb-4">
+                <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium">월간</span>
+              </div>
+              <h3 class="text-xl font-bold text-gray-800 mb-1">월간 구독</h3>
+              <div class="mb-4">
+                <span class="text-3xl font-extrabold text-indigo-600">6,000</span>
+                <span class="text-gray-500 text-sm">원 / 월</span>
+              </div>
+              <ul class="text-sm text-gray-600 space-y-2 mb-6 flex-1">
+                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>복서방 시리즈 전체 이용</li>
+                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>AI 관찰일지 자동 작성</li>
+                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>기록지·계획서 자동화</li>
+                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>월 단위 자유롭게 해지 가능</li>
+              </ul>
+              <button disabled class="w-full py-3 rounded-xl font-semibold text-sm bg-gray-200 text-gray-400 cursor-not-allowed">🔜 준비 중</button>
+            </div>
+
+            <!-- 연간 플랜 -->
+            <div class="bg-white rounded-2xl shadow-md border-2 border-indigo-400 hover:border-indigo-500 transition-all p-6 flex flex-col relative">
+              <div class="absolute -top-3 right-4">
+                <span class="px-3 py-1 bg-indigo-600 text-white text-xs font-bold rounded-full shadow-md">🏷️ 가장 인기</span>
+              </div>
+              <div class="mb-4">
+                <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">연간</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-500 font-medium ml-1">17% 할인</span>
+              </div>
+              <h3 class="text-xl font-bold text-gray-800 mb-1">연간 구독</h3>
+              <div class="mb-1">
+                <span class="text-3xl font-extrabold text-indigo-600">60,000</span>
+                <span class="text-gray-500 text-sm">원 / 년</span>
+              </div>
+              <p class="text-xs text-gray-400 mb-4">월 5,000원 꼴 · 매월 1,000원 절약</p>
+              <ul class="text-sm text-gray-600 space-y-2 mb-6 flex-1">
+                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>복서방 시리즈 전체 이용</li>
+                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>AI 관찰일지 자동 작성</li>
+                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>기록지·계획서 자동화</li>
+                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>연간 결제로 12,000원 절약</li>
+              </ul>
+              <button disabled class="w-full py-3 rounded-xl font-semibold text-sm bg-gray-200 text-gray-400 cursor-not-allowed">🔜 준비 중</button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 안내 사항 -->
+        <div class="bg-white rounded-2xl shadow-md p-6">
+          <h2 class="text-base font-bold text-gray-700 mb-3">ℹ️ 안내</h2>
+          <ul class="text-sm text-gray-500 space-y-2">
+            <li>• 회원가입 시 <strong class="text-indigo-600">10일 무료 체험</strong>이 제공됩니다.</li>
+            <li>• 무료 체험 기간 중 결제하지 않으면 자동으로 서비스가 중단됩니다.</li>
+            <li>• 구독은 언제든 해지할 수 있으며, 남은 기간까지 사용 가능합니다.</li>
+            <li>• 결제 관련 문의: <strong>복서방 고객센터</strong></li>
+          </ul>
+          <div class="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400">
+            <a href="/terms.html" class="underline hover:text-gray-600">이용약관</a> ·
+            <a href="/privacy.html" class="underline hover:text-gray-600">개인정보처리방침</a> ·
+            <a href="/refund.html" class="underline hover:text-gray-600">환불정책</a>
+          </div>
+        </div>
+
+      </div>
+    </div>`;
+};
+
 const renderUser = () => {
   const todayUsage = getTodayUsageCount();
   const maxUsage = 7;
@@ -460,7 +596,7 @@ const renderUser = () => {
       <div class="bg-white rounded-2xl shadow-xl p-6">
         <div class="flex justify-between items-start mb-4 flex-wrap gap-2">
           <div class="flex items-center gap-3"><span class="text-3xl">📝</span><h1 class="text-xl font-bold">일지해방</h1></div>
-          <div class="flex items-center gap-2 flex-col sm:flex-row"><span class="text-sm">${getGreeting()}</span>${subBadge}<div class="flex gap-1"><button onclick="state.tab='hub';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">🏠 홈</button><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div></div>
+          <div class="flex items-center gap-2 flex-col sm:flex-row"><span class="text-sm">${getGreeting()}</span>${subBadge}<div class="flex gap-1"><button onclick="state.tab='hub';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">🏠 홈</button><button onclick="state.tab='subscription';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">💳 구독</button><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div></div>
         </div>
         <div class="mb-6 p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50 rounded-lg border border-indigo-100">
           <p class="text-sm text-gray-700 text-center">감사합니다 센터 선생님들의 업무부담을 줄여드리기 위해 개발된 앱입니다.</p>
