@@ -20,26 +20,6 @@
     .brand-slide[data-state="leaving"] { animation: slide-left-out .5s cubic-bezier(.4,0,.2,1) forwards; }
     .brand-slide[data-state="hidden"] { transform: translateX(100%); opacity:0; pointer-events:none; }
     .brand-slide[data-state="visible"] { transform: translateX(0); opacity:1; }
-
-    /* 랜딩 페이지 애니메이션 */
-    @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes fadeInDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes scaleIn { from { opacity:0; transform:scale(.85); } to { opacity:1; transform:scale(1); } }
-    @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-10px); } }
-    @keyframes shimmer { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
-    @keyframes countUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-    .land-fadeUp { animation: fadeInUp .7s ease-out both; }
-    .land-fadeDown { animation: fadeInDown .6s ease-out both; }
-    .land-scaleIn { animation: scaleIn .6s ease-out both; }
-    .land-float { animation: float 3s ease-in-out infinite; }
-    .land-delay-1 { animation-delay: .15s; }
-    .land-delay-2 { animation-delay: .3s; }
-    .land-delay-3 { animation-delay: .45s; }
-    .land-delay-4 { animation-delay: .6s; }
-    .land-delay-5 { animation-delay: .75s; }
-    .land-shimmer { background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.4) 50%, transparent 100%); background-size: 200% 100%; animation: shimmer 2.5s infinite; }
-    .land-stat { animation: countUp .5s ease-out both; }
-    .land-glass { background: rgba(255,255,255,.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -61,7 +41,6 @@ let state = {
   logs: [],
   loading: false,
   tab: 'dashboard',
-  page: 'landing',  // 'landing' | 'login' | 'app'
   dataLoaded: false,
   logFilter: { startDate: '', endDate: '', userId: '', organization: '' },
   userFilter: { search: '', organization: '' },
@@ -229,343 +208,6 @@ const closeExample = () => {
   if(modal) modal.remove();
 };
 
-// ===== 랜딩 페이지 =====
-const renderLanding = () => {
-  document.getElementById('app').innerHTML = `
-    <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden">
-
-      <!-- 배경 장식 -->
-      <div class="fixed inset-0 pointer-events-none overflow-hidden">
-        <div class="absolute top-20 left-10 w-72 h-72 bg-indigo-200/30 rounded-full blur-3xl"></div>
-        <div class="absolute top-60 right-10 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-20 left-1/3 w-80 h-80 bg-blue-200/20 rounded-full blur-3xl"></div>
-      </div>
-
-      <!-- 네비게이션 -->
-      <nav class="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200/60 shadow-sm">
-        <div class="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img src="/images/logo_home_only.jpg" alt="로고" class="h-9 w-auto rounded-lg shadow-sm">
-            <span class="font-bold text-lg text-indigo-800">복지인 서류해방</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <button onclick="state.page='login';render()" class="px-5 py-2 text-base font-medium text-gray-600 hover:text-indigo-700 transition-colors">로그인</button>
-            <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-base font-semibold rounded-xl transition-all shadow-md shadow-indigo-500/20">무료 시작하기</button>
-          </div>
-        </div>
-      </nav>
-
-      <!-- 히어로 섹션 -->
-      <section class="relative z-10 max-w-6xl mx-auto px-6 pt-16 pb-12">
-        <div class="text-center">
-          <div class="land-fadeDown">
-            <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-100 border border-indigo-200 rounded-full text-base text-indigo-700 mb-6">
-              <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              AI 기반 복지 서류 자동화 서비스
-            </span>
-          </div>
-          <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6 land-fadeUp">
-            <span class="text-gray-800">서류는 AI에게,</span><br>
-            <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">선생님은 이용자에게</span>
-          </h1>
-          <p class="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-10 land-fadeUp land-delay-1 leading-relaxed">
-            관찰일지, 기록지, 계획서까지 —<br class="sm:hidden">
-            말하듯 입력하면 <strong class="text-indigo-600">AI가 전문적인 서류로</strong> 변환합니다
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center land-fadeUp land-delay-2">
-            <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-2xl transition-all shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/35 hover:-translate-y-0.5 relative overflow-hidden">
-              <span class="relative z-10">10일 무료체험 시작하기</span>
-              <div class="absolute inset-0 land-shimmer"></div>
-            </button>
-            <button onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})" class="px-8 py-4 border border-gray-300 hover:border-indigo-300 text-gray-600 hover:text-indigo-700 font-medium text-lg rounded-2xl transition-all hover:bg-white">
-              서비스 둘러보기 ↓
-            </button>
-          </div>
-        </div>
-
-        <!-- 앱 아이콘 미리보기 -->
-        <div class="flex justify-center gap-8 sm:gap-10 mt-14 land-fadeUp land-delay-3">
-          <div class="text-center land-float" style="animation-delay:0s">
-            <img src="/images/logo_ilgi.jpg" class="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl shadow-lg border-2 border-white">
-            <p class="text-base text-gray-500 mt-3 font-medium">일지해방</p>
-          </div>
-          <div class="text-center land-float" style="animation-delay:.5s">
-            <img src="/images/logo_girokgi.jpg" class="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl shadow-lg border-2 border-white">
-            <p class="text-base text-gray-500 mt-3 font-medium">기록지해방</p>
-          </div>
-          <div class="text-center land-float" style="animation-delay:1s">
-            <img src="/images/logo_plan.jpg" class="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl shadow-lg border-2 border-white">
-            <p class="text-base text-gray-500 mt-3 font-medium">계획서해방</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- 문제 제기 섹션 -->
-      <section class="relative z-10 py-16">
-        <div class="max-w-4xl mx-auto px-6">
-          <div class="rounded-3xl p-8 sm:p-10 bg-white border border-gray-200 shadow-lg">
-            <h2 class="text-2xl sm:text-3xl font-bold text-center mb-8">
-              <span class="text-gray-800">혹시 이런 경험,</span> <span class="text-indigo-600">있으시죠?</span>
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div class="text-center p-5 rounded-2xl bg-red-50 border border-red-100">
-                <span class="text-4xl block mb-3">😫</span>
-                <p class="text-gray-600 text-base leading-relaxed">퇴근 후에도 <strong class="text-gray-800">관찰일지</strong>를 써야 해서 야근이 일상</p>
-              </div>
-              <div class="text-center p-5 rounded-2xl bg-amber-50 border border-amber-100">
-                <span class="text-4xl block mb-3">📋</span>
-                <p class="text-gray-600 text-base leading-relaxed">같은 내용을 <strong class="text-gray-800">일지·기록지·계획서</strong>에 반복 입력</p>
-              </div>
-              <div class="text-center p-5 rounded-2xl bg-blue-50 border border-blue-100">
-                <span class="text-4xl block mb-3">⏰</span>
-                <p class="text-gray-600 text-base leading-relaxed">서류 때문에 정작 <strong class="text-gray-800">이용자와 함께할 시간</strong>이 부족</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 서비스 소개 섹션 -->
-      <section id="features" class="relative z-10 py-16">
-        <div class="max-w-6xl mx-auto px-6">
-          <div class="text-center mb-12">
-            <h2 class="text-3xl sm:text-4xl font-bold mb-4">
-              <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">복지인 서류해방</span>
-              <span class="text-gray-800">이 해결합니다</span>
-            </h2>
-            <p class="text-gray-500 text-xl">성인 발달장애인 주간활동센터 맞춤 AI 서류 자동화</p>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- 일지해방 -->
-            <div class="group bg-white hover:bg-sky-50/50 border border-gray-200 hover:border-sky-300 rounded-2xl p-7 transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
-              <div class="w-14 h-14 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center mb-5 shadow-md shadow-sky-500/20">
-                <span class="text-2xl">📝</span>
-              </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-2">일지 해방</h3>
-              <p class="text-gray-500 text-base leading-relaxed mb-4">말하듯 편하게 입력하면 전문적인 관찰일지가 완성됩니다. 4가지 말투 스타일을 지원합니다.</p>
-              <div class="flex flex-wrap gap-2">
-                <span class="px-2.5 py-1 rounded-full text-sm bg-sky-100 text-sky-700 font-medium">AI 작성</span>
-                <span class="px-2.5 py-1 rounded-full text-sm bg-sky-100 text-sky-700 font-medium">4가지 말투</span>
-              </div>
-            </div>
-
-            <!-- 기록지해방 -->
-            <div class="group bg-white hover:bg-teal-50/50 border border-gray-200 hover:border-teal-300 rounded-2xl p-7 transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
-              <div class="w-14 h-14 bg-gradient-to-br from-teal-400 to-teal-600 rounded-2xl flex items-center justify-center mb-5 shadow-md shadow-teal-500/20">
-                <span class="text-2xl">📊</span>
-              </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-2">기록지 해방</h3>
-              <p class="text-gray-500 text-base leading-relaxed mb-4">일지를 작성하면 기록지 엑셀이 자동으로 채워집니다. 이중작업을 완전히 제거합니다.</p>
-              <div class="flex flex-wrap gap-2">
-                <span class="px-2.5 py-1 rounded-full text-sm bg-teal-100 text-teal-700 font-medium">자동 연동</span>
-                <span class="px-2.5 py-1 rounded-full text-sm bg-teal-100 text-teal-700 font-medium">엑셀 출력</span>
-              </div>
-            </div>
-
-            <!-- 계획서해방 -->
-            <div class="group bg-white hover:bg-purple-50/50 border border-gray-200 hover:border-purple-300 rounded-2xl p-7 transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
-              <div class="w-14 h-14 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mb-5 shadow-md shadow-purple-500/20">
-                <span class="text-2xl">📅</span>
-              </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-2">계획서 해방</h3>
-              <p class="text-gray-500 text-base leading-relaxed mb-4">수업계획서와 활동계획서를 AI가 함께 작성해드립니다. 다음 달 계획도 손쉽게.</p>
-              <div class="flex flex-wrap gap-2">
-                <span class="px-2.5 py-1 rounded-full text-sm bg-purple-100 text-purple-700 font-medium">AI 기획</span>
-                <span class="px-2.5 py-1 rounded-full text-sm bg-purple-100 text-purple-700 font-medium">수업·활동</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 사용 방법 섹션 -->
-      <section class="relative z-10 py-16 bg-white/60">
-        <div class="max-w-4xl mx-auto px-6">
-          <h2 class="text-3xl font-bold text-center mb-12">
-            <span class="text-gray-800">사용 방법은</span> <span class="text-indigo-600">간단합니다</span>
-          </h2>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            <div class="text-center">
-              <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/25">
-                <span class="text-2xl font-bold text-white">1</span>
-              </div>
-              <h3 class="font-bold text-lg text-gray-800 mb-2">편하게 입력</h3>
-              <p class="text-gray-500 text-base leading-relaxed">오늘 활동을 말하듯<br>편하게 적어주세요</p>
-            </div>
-            <div class="text-center">
-              <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/25">
-                <span class="text-2xl font-bold text-white">2</span>
-              </div>
-              <h3 class="font-bold text-lg text-gray-800 mb-2">AI가 변환</h3>
-              <p class="text-gray-500 text-base leading-relaxed">AI가 전문적인 서류로<br>자동 변환합니다</p>
-            </div>
-            <div class="text-center">
-              <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/25">
-                <span class="text-2xl font-bold text-white">3</span>
-              </div>
-              <h3 class="font-bold text-lg text-gray-800 mb-2">바로 완성</h3>
-              <p class="text-gray-500 text-base leading-relaxed">확인하고 저장하면<br>서류 작성 끝!</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 요금제 섹션 -->
-      <section class="relative z-10 py-16">
-        <div class="max-w-4xl mx-auto px-6">
-          <div class="text-center mb-10">
-            <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-3">합리적인 요금제</h2>
-            <p class="text-gray-500 text-lg">하루 200원으로 서류 걱정 끝</p>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- 월간 -->
-            <div class="bg-white border border-gray-200 rounded-2xl p-7 hover:border-indigo-200 hover:shadow-md transition-all shadow-sm">
-              <span class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">월간</span>
-              <div class="mt-5 mb-4">
-                <span class="text-4xl font-extrabold text-gray-800">6,000</span>
-                <span class="text-gray-400 text-base">원 / 월</span>
-              </div>
-              <ul class="text-base text-gray-600 space-y-3 mb-7">
-                <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 복서방 시리즈 전체 이용</li>
-                <li class="flex items-center gap-2"><span class="text-green-500">✓</span> AI 관찰일지 무제한 작성</li>
-                <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 언제든 해지 가능</li>
-              </ul>
-              <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all">시작하기</button>
-            </div>
-            <!-- 연간 -->
-            <div class="bg-white border-2 border-indigo-400 rounded-2xl p-7 relative hover:shadow-lg transition-all shadow-sm">
-              <div class="absolute -top-3 right-5">
-                <span class="px-4 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-bold rounded-full shadow-md">추천</span>
-              </div>
-              <span class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">연간</span>
-              <span class="text-sm px-3 py-1 rounded-full bg-red-100 text-red-600 font-medium ml-2">17% 할인</span>
-              <div class="mt-5 mb-1">
-                <span class="text-4xl font-extrabold text-gray-800">60,000</span>
-                <span class="text-gray-400 text-base">원 / 년</span>
-              </div>
-              <p class="text-sm text-gray-400 mb-4">월 5,000원 꼴 · 연 12,000원 절약</p>
-              <ul class="text-base text-gray-600 space-y-3 mb-7">
-                <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 복서방 시리즈 전체 이용</li>
-                <li class="flex items-center gap-2"><span class="text-green-500">✓</span> AI 관찰일지 무제한 작성</li>
-                <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 연 12,000원 절약</li>
-              </ul>
-              <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl font-semibold transition-all shadow-md shadow-indigo-500/20">시작하기</button>
-            </div>
-          </div>
-          <p class="text-center text-base text-gray-400 mt-6">💡 회원가입 시 <strong class="text-indigo-600">10일 무료체험</strong> 제공 · 카드정보 없이 바로 시작</p>
-        </div>
-      </section>
-
-      <!-- CTA 섹션 -->
-      <section class="relative z-10 py-20 bg-gradient-to-r from-indigo-600 to-purple-600">
-        <div class="max-w-3xl mx-auto px-6 text-center">
-          <h2 class="text-3xl sm:text-4xl font-bold text-white mb-5">
-            지금 바로 시작해보세요
-          </h2>
-          <p class="text-xl text-indigo-100 mb-8">10일 무료체험 · 카드정보 불필요 · 1분이면 가입 완료</p>
-          <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="group px-10 py-4 bg-white hover:bg-gray-50 text-indigo-700 font-bold text-lg rounded-2xl transition-all shadow-xl hover:-translate-y-0.5">
-            무료체험 시작하기 →
-          </button>
-        </div>
-      </section>
-
-      <!-- 푸터 -->
-      <footer class="relative z-10 bg-white border-t border-gray-200 py-8">
-        <div class="max-w-6xl mx-auto px-6 text-center text-sm text-gray-400 space-y-2">
-          <p>복서방 | 대표: 천만석 | 사업자등록번호: 355-18-02470</p>
-          <p>전북특별자치도 군산시 신평2길 12-7, 402호</p>
-          <p>
-            <a href="/terms.html" class="underline hover:text-gray-600 transition-colors">이용약관</a> ·
-            <a href="/privacy.html" class="underline hover:text-gray-600 transition-colors">개인정보처리방침</a> ·
-            <a href="/refund.html" class="underline hover:text-gray-600 transition-colors">환불정책</a>
-          </p>
-          <p class="text-gray-300 mt-3">© 2026 복서방. All rights reserved.</p>
-        </div>
-      </footer>
-
-    </div>`;
-};
-
-// ===== 로그인/회원가입 페이지 =====
-const renderAuthPage = () => {
-  document.getElementById('app').innerHTML = `
-    <div class="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div class="w-full max-w-md">
-        <!-- 뒤로가기 -->
-        <button onclick="state.page='landing';render()" class="flex items-center gap-1 text-sm text-gray-500 hover:text-indigo-700 mb-6 transition-colors">
-          ← 메인으로 돌아가기
-        </button>
-
-        <div class="bg-white rounded-2xl shadow-xl p-8">
-          <!-- 로고 -->
-          <div class="text-center mb-6">
-            <img src="/images/logo_home.jpg" alt="복지인 서류해방" class="w-48 mx-auto drop-shadow-sm land-scaleIn">
-          </div>
-
-          <!-- 3개 앱 아이콘 -->
-          <div class="flex justify-center gap-4 mb-7">
-            <img src="/images/logo_ilgi.jpg" class="w-[80px] h-[80px] rounded-full object-cover shadow-sm land-scaleIn land-delay-1">
-            <img src="/images/logo_girokgi.jpg" class="w-[80px] h-[80px] rounded-full object-cover shadow-sm land-scaleIn land-delay-2">
-            <img src="/images/logo_plan.jpg" class="w-[80px] h-[80px] rounded-full object-cover shadow-sm land-scaleIn land-delay-3">
-          </div>
-
-          <!-- 로그인 폼 -->
-          <div id="loginForm" class="space-y-3 land-fadeUp">
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">아이디</label>
-              <input id="loginId" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="아이디를 입력하세요"/>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">비밀번호</label>
-              <input id="loginPw" type="password" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="비밀번호를 입력하세요"/>
-            </div>
-            <p id="loginErr" class="text-red-500 text-sm hidden">아이디 또는 비밀번호가 올바르지 않습니다.</p>
-            <button onclick="login()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3 rounded-xl mt-1 transition-colors">로그인</button>
-            <p class="text-center text-sm text-gray-500 mt-2">계정이 없으신가요? <button onclick="showRegisterForm()" class="text-indigo-600 hover:text-indigo-800 font-medium">회원가입</button></p>
-          </div>
-
-          <!-- 회원가입 폼 (숨김) -->
-          <div id="registerForm" class="space-y-3 hidden">
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">아이디 <span class="text-red-500">*</span></label>
-              <input id="regId" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="아이디를 입력하세요"/>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">비밀번호 <span class="text-red-500">*</span></label>
-              <input id="regPw" type="password" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="비밀번호를 입력하세요"/>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">이름 <span class="text-red-500">*</span></label>
-              <input id="regName" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="이름을 입력하세요"/>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">이메일 <span class="text-red-500">*</span></label>
-              <input id="regEmail" type="email" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="example@email.com"/>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">소속기관 <span class="text-gray-400 font-normal">(선택)</span></label>
-              <input id="regOrg" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="소속기관명"/>
-            </div>
-            <p id="regErr" class="text-red-500 text-sm hidden"></p>
-            <button onclick="register()" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-3 rounded-xl mt-1 transition-colors">회원가입 (10일 무료체험)</button>
-            <p class="text-center text-sm text-gray-500 mt-2">이미 계정이 있으신가요? <button onclick="showLoginForm()" class="text-indigo-600 hover:text-indigo-800 font-medium">로그인</button></p>
-          </div>
-        </div>
-
-        <div class="text-center text-xs text-gray-400 mt-6 space-y-1">
-          <p>복서방 | 대표: 천만석 | 사업자등록번호: 355-18-02470</p>
-          <p>전북특별자치도 군산시 신평2길 12-7, 402호</p>
-          <p>
-            <a href="/terms.html" class="underline hover:text-gray-600">이용약관</a> ·
-            <a href="/privacy.html" class="underline hover:text-gray-600">개인정보처리방침</a> ·
-            <a href="/refund.html" class="underline hover:text-gray-600">환불정책</a>
-          </p>
-        </div>
-      </div>
-    </div>`;
-};
-
 const getTodayUsageCount = (userId = null) => {
   const today = new Date().toLocaleDateString('ko-KR');
   const uid = userId || state.user.id;
@@ -576,12 +218,59 @@ const render = () => {
   if (!state.dataLoaded) return;
   const app = document.getElementById('app');
   if(!state.user) {
-    if (state.page === 'landing') { renderLanding(); return; }
-    renderAuthPage();
+    app.innerHTML = `
+      <div class="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+
+          <!-- 메인 로고 -->
+          <div class="text-center mb-6">
+            <img src="/images/logo_home.jpg" alt="복지인 서류해방" class="w-56 mx-auto drop-shadow-sm">
+          </div>
+
+          <!-- 3개 앱 아이콘 -->
+          <div class="flex justify-center gap-5 mb-7">
+            <div>
+              <img src="/images/logo_ilgi.jpg" class="w-[115px] h-[115px] rounded-full object-cover shadow-sm">
+            </div>
+            <div>
+              <img src="/images/logo_girokgi.jpg" class="w-[115px] h-[115px] rounded-full object-cover shadow-sm">
+            </div>
+            <div>
+              <img src="/images/logo_plan.jpg" class="w-[115px] h-[115px] rounded-full object-cover shadow-sm">
+            </div>
+          </div>
+
+          <!-- 로그인 폼 -->
+          <div id="loginForm" class="space-y-3">
+            <div><label class="block text-sm font-medium mb-1 text-gray-700">아이디</label><input id="loginId" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="아이디를 입력하세요"/></div>
+            <div><label class="block text-sm font-medium mb-1 text-gray-700">비밀번호</label><input id="loginPw" type="password" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="비밀번호를 입력하세요"/></div>
+            <p id="loginErr" class="text-red-500 text-sm hidden">아이디 또는 비밀번호가 올바르지 않습니다.</p>
+            <button onclick="login()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3 rounded-xl mt-1 transition-colors">로그인</button>
+            <p class="text-center text-sm text-gray-500 mt-2">계정이 없으신가요? <button onclick="showRegisterForm()" class="text-indigo-600 hover:text-indigo-800 font-medium">회원가입</button></p>
+          </div>
+
+          <!-- 회원가입 폼 (숨김) -->
+          <div id="registerForm" class="space-y-3 hidden">
+            <div><label class="block text-sm font-medium mb-1 text-gray-700">아이디 <span class="text-red-500">*</span></label><input id="regId" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="아이디를 입력하세요"/></div>
+            <div><label class="block text-sm font-medium mb-1 text-gray-700">비밀번호 <span class="text-red-500">*</span></label><input id="regPw" type="password" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="비밀번호를 입력하세요"/></div>
+            <div><label class="block text-sm font-medium mb-1 text-gray-700">이름 <span class="text-red-500">*</span></label><input id="regName" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="이름을 입력하세요"/></div>
+            <div><label class="block text-sm font-medium mb-1 text-gray-700">이메일 <span class="text-red-500">*</span></label><input id="regEmail" type="email" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="example@email.com"/></div>
+            <div><label class="block text-sm font-medium mb-1 text-gray-700">소속기관 <span class="text-gray-400 font-normal">(선택)</span></label><input id="regOrg" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="소속기관명"/></div>
+            <p id="regErr" class="text-red-500 text-sm hidden"></p>
+            <button onclick="register()" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-3 rounded-xl mt-1 transition-colors">회원가입 (10일 무료체험)</button>
+            <p class="text-center text-sm text-gray-500 mt-2">이미 계정이 있으신가요? <button onclick="showLoginForm()" class="text-indigo-600 hover:text-indigo-800 font-medium">로그인</button></p>
+          </div>
+
+          <div class="text-center text-xs text-gray-400 mt-6 space-y-1">
+            <p>복서방 | 대표: 천만석 | 사업자등록번호: 355-18-02470</p>
+            <p>전북특별자치도 군산시 신평2길 12-7, 402호</p>
+            <p><a href="/terms.html" class="underline">이용약관</a> · <a href="/privacy.html" class="underline">개인정보처리방침</a> · <a href="/refund.html" class="underline">환불정책</a></p>
+          </div>
+        </div>
+      </div>`;
     return;
   }
   if(state.tab === 'hub') { renderHub(); return; }
-  if(state.tab === 'subscription') { renderSubscription(); return; }
   if(state.user.role === 'admin') { renderAdmin(); } else { renderUser(); }
 };
 
@@ -621,8 +310,7 @@ const renderHub = () => {
               <span class="text-sm text-gray-500">${greet}</span>
               ${subBadge}
             </div>
-            <button onclick="state.tab='subscription';render()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium transition-colors">💳 구독</button>
-            <button onclick="logout()" class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-lg text-sm font-medium transition-colors">🚪 로그아웃</button>
+            <button onclick="logout()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium transition-colors">🚪 로그아웃</button>
           </div>
         </div>
       </header>
@@ -753,140 +441,6 @@ const renderHub = () => {
   setTimeout(startBrandSlider, 100);
 };
 
-const renderSubscription = () => {
-  const subDaysLeft = getSubscriptionDaysLeft(state.user);
-  const expDate = state.user.subscription_end || '';
-
-  // 구독 상태 판별
-  const getSubStatus = () => {
-    if (!expDate) return { label: '미구독', color: 'gray', icon: '⚪', bg: 'from-gray-50 to-gray-100', border: 'border-gray-200' };
-    if (subDaysLeft === null) return { label: '구독 정보 없음', color: 'gray', icon: '⚪', bg: 'from-gray-50 to-gray-100', border: 'border-gray-200' };
-    if (subDaysLeft <= 0) return { label: '만료됨', color: 'red', icon: '🔴', bg: 'from-red-50 to-red-100', border: 'border-red-200' };
-    if (subDaysLeft <= 3) return { label: '곧 만료', color: 'amber', icon: '🟡', bg: 'from-amber-50 to-amber-100', border: 'border-amber-200' };
-    if (subDaysLeft <= 10) return { label: '체험 중', color: 'blue', icon: '🔵', bg: 'from-blue-50 to-blue-100', border: 'border-blue-200' };
-    return { label: '구독 중', color: 'green', icon: '🟢', bg: 'from-green-50 to-green-100', border: 'border-green-200' };
-  };
-  const status = getSubStatus();
-  const dDayText = subDaysLeft !== null ? (subDaysLeft <= 0 ? 'D-Day' : `D-${subDaysLeft}`) : '-';
-
-  document.getElementById('app').innerHTML = `
-    <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-
-      <!-- 상단 헤더 -->
-      <header class="bg-white shadow-sm px-6 py-3">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img src="/images/logo_home_only.jpg" alt="로고" class="h-10 w-auto rounded">
-            <span class="font-bold text-indigo-800 text-lg">구독 관리</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="state.tab='hub';render()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium transition-colors">🏠 홈</button>
-            <button onclick="logout()" class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-lg text-sm font-medium transition-colors">🚪 로그아웃</button>
-          </div>
-        </div>
-      </header>
-
-      <div class="max-w-4xl mx-auto px-4 py-8 space-y-6">
-
-        <!-- 현재 구독 상태 카드 -->
-        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-          <div class="bg-gradient-to-r ${status.bg} px-6 py-4 border-b ${status.border}">
-            <h2 class="text-lg font-bold text-gray-800">📋 나의 구독 현황</h2>
-          </div>
-          <div class="p-6">
-            <div class="flex flex-col sm:flex-row items-center gap-6">
-              <div class="flex-1 text-center sm:text-left">
-                <div class="flex items-center justify-center sm:justify-start gap-2 mb-2">
-                  <span class="text-2xl">${status.icon}</span>
-                  <span class="text-xl font-bold text-${status.color}-600">${status.label}</span>
-                </div>
-                <p class="text-sm text-gray-500">${state.user.name} 선생님의 구독 상태입니다</p>
-              </div>
-              <div class="flex gap-4">
-                <div class="text-center px-5 py-3 bg-gray-50 rounded-xl">
-                  <p class="text-xs text-gray-400 mb-1">만료일</p>
-                  <p class="text-base font-bold text-gray-700">${expDate || '없음'}</p>
-                </div>
-                <div class="text-center px-5 py-3 bg-gray-50 rounded-xl">
-                  <p class="text-xs text-gray-400 mb-1">남은 일수</p>
-                  <p class="text-base font-bold text-${status.color}-600">${dDayText}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 요금제 비교 -->
-        <div>
-          <h2 class="text-lg font-bold text-gray-800 mb-4">💎 요금제 선택</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-            <!-- 월간 플랜 -->
-            <div class="bg-white rounded-2xl shadow-md border-2 border-gray-100 hover:border-indigo-200 transition-all p-6 flex flex-col">
-              <div class="mb-4">
-                <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium">월간</span>
-              </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-1">월간 구독</h3>
-              <div class="mb-4">
-                <span class="text-3xl font-extrabold text-indigo-600">6,000</span>
-                <span class="text-gray-500 text-sm">원 / 월</span>
-              </div>
-              <ul class="text-sm text-gray-600 space-y-2 mb-6 flex-1">
-                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>복서방 시리즈 전체 이용</li>
-                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>AI 관찰일지 자동 작성</li>
-                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>기록지·계획서 자동화</li>
-                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>월 단위 자유롭게 해지 가능</li>
-              </ul>
-              <button disabled class="w-full py-3 rounded-xl font-semibold text-sm bg-gray-200 text-gray-400 cursor-not-allowed">🔜 준비 중</button>
-            </div>
-
-            <!-- 연간 플랜 -->
-            <div class="bg-white rounded-2xl shadow-md border-2 border-indigo-400 hover:border-indigo-500 transition-all p-6 flex flex-col relative">
-              <div class="absolute -top-3 right-4">
-                <span class="px-3 py-1 bg-indigo-600 text-white text-xs font-bold rounded-full shadow-md">🏷️ 가장 인기</span>
-              </div>
-              <div class="mb-4">
-                <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">연간</span>
-                <span class="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-500 font-medium ml-1">17% 할인</span>
-              </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-1">연간 구독</h3>
-              <div class="mb-1">
-                <span class="text-3xl font-extrabold text-indigo-600">60,000</span>
-                <span class="text-gray-500 text-sm">원 / 년</span>
-              </div>
-              <p class="text-xs text-gray-400 mb-4">월 5,000원 꼴 · 매월 1,000원 절약</p>
-              <ul class="text-sm text-gray-600 space-y-2 mb-6 flex-1">
-                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>복서방 시리즈 전체 이용</li>
-                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>AI 관찰일지 자동 작성</li>
-                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>기록지·계획서 자동화</li>
-                <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>연간 결제로 12,000원 절약</li>
-              </ul>
-              <button disabled class="w-full py-3 rounded-xl font-semibold text-sm bg-gray-200 text-gray-400 cursor-not-allowed">🔜 준비 중</button>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- 안내 사항 -->
-        <div class="bg-white rounded-2xl shadow-md p-6">
-          <h2 class="text-base font-bold text-gray-700 mb-3">ℹ️ 안내</h2>
-          <ul class="text-sm text-gray-500 space-y-2">
-            <li>• 회원가입 시 <strong class="text-indigo-600">10일 무료 체험</strong>이 제공됩니다.</li>
-            <li>• 무료 체험 기간 중 결제하지 않으면 자동으로 서비스가 중단됩니다.</li>
-            <li>• 구독은 언제든 해지할 수 있으며, 남은 기간까지 사용 가능합니다.</li>
-            <li>• 결제 관련 문의: <strong>복서방 고객센터</strong></li>
-          </ul>
-          <div class="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400">
-            <a href="/terms.html" class="underline hover:text-gray-600">이용약관</a> ·
-            <a href="/privacy.html" class="underline hover:text-gray-600">개인정보처리방침</a> ·
-            <a href="/refund.html" class="underline hover:text-gray-600">환불정책</a>
-          </div>
-        </div>
-
-      </div>
-    </div>`;
-};
-
 const renderUser = () => {
   const todayUsage = getTodayUsageCount();
   const maxUsage = 7;
@@ -906,7 +460,7 @@ const renderUser = () => {
       <div class="bg-white rounded-2xl shadow-xl p-6">
         <div class="flex justify-between items-start mb-4 flex-wrap gap-2">
           <div class="flex items-center gap-3"><span class="text-3xl">📝</span><h1 class="text-xl font-bold">일지해방</h1></div>
-          <div class="flex items-center gap-2 flex-col sm:flex-row"><span class="text-sm">${getGreeting()}</span>${subBadge}<div class="flex gap-1"><button onclick="state.tab='hub';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">🏠 홈</button><button onclick="state.tab='subscription';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">💳 구독</button><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div></div>
+          <div class="flex items-center gap-2 flex-col sm:flex-row"><span class="text-sm">${getGreeting()}</span>${subBadge}<div class="flex gap-1"><button onclick="state.tab='hub';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">🏠 홈</button><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div></div>
         </div>
         <div class="mb-6 p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50 rounded-lg border border-indigo-100">
           <p class="text-sm text-gray-700 text-center">감사합니다 센터 선생님들의 업무부담을 줄여드리기 위해 개발된 앱입니다.</p>
@@ -1560,7 +1114,6 @@ const login = async () => {
     authToken = data.token;
     sessionStorage.setItem('authToken', authToken);
     state.user = data.user;
-    state.page = 'app';
     state.tab = 'hub';
     render();
 
@@ -1625,7 +1178,6 @@ const register = async () => {
     sessionStorage.setItem('authToken', authToken);
     state.user = data.user;
     state.users.push(data.user);
-    state.page = 'app';
     state.tab = 'hub';
     render();
   } catch (e) {
@@ -1639,7 +1191,6 @@ const logout = () => {
   authToken = null;
   sessionStorage.removeItem('authToken');
   state.user = null;
-  state.page = 'landing';
   state.tab = 'dashboard';
   state.logFilter = { startDate: '', endDate: '', userId: '', organization: '' };
   state.userFilter = { search: '', organization: '' };
@@ -2019,7 +1570,6 @@ const restoreSession = async () => {
     if (res.ok) {
       const data = await res.json();
       state.user = data.user;
-      state.page = 'app';
       state.tab = 'hub';
     } else {
       authToken = null;
