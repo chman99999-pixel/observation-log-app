@@ -243,14 +243,15 @@ const renderLanding = () => {
 
       <!-- 네비게이션 -->
       <nav class="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200/60 shadow-sm">
-        <div class="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center">
           <div class="flex items-center gap-2">
-            <img src="/images/logo_home_only.jpg" alt="로고" class="h-9 w-auto rounded-lg shadow-sm">
-            <span class="font-bold text-lg text-indigo-800">복지인 서류해방</span>
+            <img src="/images/logo_home_only.jpg" alt="로고" class="h-8 sm:h-9 w-auto rounded-lg shadow-sm">
+            <span class="font-bold text-base sm:text-lg text-indigo-800 hidden sm:inline">복지인 서류해방</span>
+            <span class="font-bold text-base text-indigo-800 sm:hidden">복서방</span>
           </div>
-          <div class="flex items-center gap-3">
-            <button onclick="state.page='login';render()" class="px-5 py-2 text-base font-medium text-gray-600 hover:text-indigo-700 transition-colors">로그인</button>
-            <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-base font-semibold rounded-xl transition-all shadow-md shadow-indigo-500/20">무료 시작하기</button>
+          <div class="flex items-center gap-2 sm:gap-3">
+            <button onclick="state.page='login';render()" class="px-3 sm:px-5 py-2 text-sm sm:text-base font-medium text-gray-600 hover:text-indigo-700 transition-colors">로그인</button>
+            <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="px-3 sm:px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm sm:text-base font-semibold rounded-xl transition-all shadow-md shadow-indigo-500/20 whitespace-nowrap">무료 시작</button>
           </div>
         </div>
       </nav>
