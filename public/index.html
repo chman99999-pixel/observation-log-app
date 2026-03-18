@@ -249,8 +249,8 @@ const renderLanding = () => {
             <span class="font-bold text-lg text-indigo-800">복지인 서류해방</span>
           </div>
           <div class="flex items-center gap-3">
-            <button onclick="state.page='login';render()" class="px-5 py-2 text-sm font-medium text-gray-600 hover:text-indigo-700 transition-colors">로그인</button>
-            <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-indigo-500/20">무료 시작하기</button>
+            <button onclick="state.page='login';render()" class="px-5 py-2 text-base font-medium text-gray-600 hover:text-indigo-700 transition-colors">로그인</button>
+            <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-base font-semibold rounded-xl transition-all shadow-md shadow-indigo-500/20">무료 시작하기</button>
           </div>
         </div>
       </nav>
@@ -259,7 +259,7 @@ const renderLanding = () => {
       <section class="relative z-10 max-w-6xl mx-auto px-6 pt-16 pb-12">
         <div class="text-center">
           <div class="land-fadeDown">
-            <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-100 border border-indigo-200 rounded-full text-sm text-indigo-700 mb-6">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-100 border border-indigo-200 rounded-full text-base text-indigo-700 mb-6">
               <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
               AI 기반 복지 서류 자동화 서비스
             </span>
@@ -287,15 +287,15 @@ const renderLanding = () => {
         <div class="flex justify-center gap-8 sm:gap-10 mt-14 land-fadeUp land-delay-3">
           <div class="text-center land-float" style="animation-delay:0s">
             <img src="/images/logo_ilgi.jpg" class="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl shadow-lg border-2 border-white">
-            <p class="text-sm text-gray-500 mt-3 font-medium">일지해방</p>
+            <p class="text-base text-gray-500 mt-3 font-medium">일지해방</p>
           </div>
           <div class="text-center land-float" style="animation-delay:.5s">
             <img src="/images/logo_girokgi.jpg" class="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl shadow-lg border-2 border-white">
-            <p class="text-sm text-gray-500 mt-3 font-medium">기록지해방</p>
+            <p class="text-base text-gray-500 mt-3 font-medium">기록지해방</p>
           </div>
           <div class="text-center land-float" style="animation-delay:1s">
             <img src="/images/logo_plan.jpg" class="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl shadow-lg border-2 border-white">
-            <p class="text-sm text-gray-500 mt-3 font-medium">계획서해방</p>
+            <p class="text-base text-gray-500 mt-3 font-medium">계획서해방</p>
           </div>
         </div>
       </section>
@@ -310,15 +310,15 @@ const renderLanding = () => {
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div class="text-center p-5 rounded-2xl bg-red-50 border border-red-100">
                 <span class="text-4xl block mb-3">😫</span>
-                <p class="text-gray-600 text-sm leading-relaxed">퇴근 후에도 <strong class="text-gray-800">관찰일지</strong>를 써야 해서 야근이 일상</p>
+                <p class="text-gray-600 text-base leading-relaxed">퇴근 후에도 <strong class="text-gray-800">관찰일지</strong>를 써야 해서 야근이 일상</p>
               </div>
               <div class="text-center p-5 rounded-2xl bg-amber-50 border border-amber-100">
                 <span class="text-4xl block mb-3">📋</span>
-                <p class="text-gray-600 text-sm leading-relaxed">같은 내용을 <strong class="text-gray-800">일지·기록지·계획서</strong>에 반복 입력</p>
+                <p class="text-gray-600 text-base leading-relaxed">같은 내용을 <strong class="text-gray-800">일지·기록지·계획서</strong>에 반복 입력</p>
               </div>
               <div class="text-center p-5 rounded-2xl bg-blue-50 border border-blue-100">
                 <span class="text-4xl block mb-3">⏰</span>
-                <p class="text-gray-600 text-sm leading-relaxed">서류 때문에 정작 <strong class="text-gray-800">이용자와 함께할 시간</strong>이 부족</p>
+                <p class="text-gray-600 text-base leading-relaxed">서류 때문에 정작 <strong class="text-gray-800">이용자와 함께할 시간</strong>이 부족</p>
               </div>
             </div>
           </div>
@@ -333,7 +333,7 @@ const renderLanding = () => {
               <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">복지인 서류해방</span>
               <span class="text-gray-800">이 해결합니다</span>
             </h2>
-            <p class="text-gray-500 text-lg">성인 발달장애인 주간활동센터 맞춤 AI 서류 자동화</p>
+            <p class="text-gray-500 text-xl">성인 발달장애인 주간활동센터 맞춤 AI 서류 자동화</p>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -343,10 +343,10 @@ const renderLanding = () => {
                 <span class="text-2xl">📝</span>
               </div>
               <h3 class="text-xl font-bold text-gray-800 mb-2">일지 해방</h3>
-              <p class="text-gray-500 text-sm leading-relaxed mb-4">말하듯 편하게 입력하면 전문적인 관찰일지가 완성됩니다. 4가지 말투 스타일을 지원합니다.</p>
+              <p class="text-gray-500 text-base leading-relaxed mb-4">말하듯 편하게 입력하면 전문적인 관찰일지가 완성됩니다. 4가지 말투 스타일을 지원합니다.</p>
               <div class="flex flex-wrap gap-2">
-                <span class="px-2.5 py-1 rounded-full text-xs bg-sky-100 text-sky-700 font-medium">AI 작성</span>
-                <span class="px-2.5 py-1 rounded-full text-xs bg-sky-100 text-sky-700 font-medium">4가지 말투</span>
+                <span class="px-2.5 py-1 rounded-full text-sm bg-sky-100 text-sky-700 font-medium">AI 작성</span>
+                <span class="px-2.5 py-1 rounded-full text-sm bg-sky-100 text-sky-700 font-medium">4가지 말투</span>
               </div>
             </div>
 
@@ -356,10 +356,10 @@ const renderLanding = () => {
                 <span class="text-2xl">📊</span>
               </div>
               <h3 class="text-xl font-bold text-gray-800 mb-2">기록지 해방</h3>
-              <p class="text-gray-500 text-sm leading-relaxed mb-4">일지를 작성하면 기록지 엑셀이 자동으로 채워집니다. 이중작업을 완전히 제거합니다.</p>
+              <p class="text-gray-500 text-base leading-relaxed mb-4">일지를 작성하면 기록지 엑셀이 자동으로 채워집니다. 이중작업을 완전히 제거합니다.</p>
               <div class="flex flex-wrap gap-2">
-                <span class="px-2.5 py-1 rounded-full text-xs bg-teal-100 text-teal-700 font-medium">자동 연동</span>
-                <span class="px-2.5 py-1 rounded-full text-xs bg-teal-100 text-teal-700 font-medium">엑셀 출력</span>
+                <span class="px-2.5 py-1 rounded-full text-sm bg-teal-100 text-teal-700 font-medium">자동 연동</span>
+                <span class="px-2.5 py-1 rounded-full text-sm bg-teal-100 text-teal-700 font-medium">엑셀 출력</span>
               </div>
             </div>
 
@@ -369,10 +369,10 @@ const renderLanding = () => {
                 <span class="text-2xl">📅</span>
               </div>
               <h3 class="text-xl font-bold text-gray-800 mb-2">계획서 해방</h3>
-              <p class="text-gray-500 text-sm leading-relaxed mb-4">수업계획서와 활동계획서를 AI가 함께 작성해드립니다. 다음 달 계획도 손쉽게.</p>
+              <p class="text-gray-500 text-base leading-relaxed mb-4">수업계획서와 활동계획서를 AI가 함께 작성해드립니다. 다음 달 계획도 손쉽게.</p>
               <div class="flex flex-wrap gap-2">
-                <span class="px-2.5 py-1 rounded-full text-xs bg-purple-100 text-purple-700 font-medium">AI 기획</span>
-                <span class="px-2.5 py-1 rounded-full text-xs bg-purple-100 text-purple-700 font-medium">수업·활동</span>
+                <span class="px-2.5 py-1 rounded-full text-sm bg-purple-100 text-purple-700 font-medium">AI 기획</span>
+                <span class="px-2.5 py-1 rounded-full text-sm bg-purple-100 text-purple-700 font-medium">수업·활동</span>
               </div>
             </div>
           </div>
@@ -391,21 +391,21 @@ const renderLanding = () => {
                 <span class="text-2xl font-bold text-white">1</span>
               </div>
               <h3 class="font-bold text-lg text-gray-800 mb-2">편하게 입력</h3>
-              <p class="text-gray-500 text-sm leading-relaxed">오늘 활동을 말하듯<br>편하게 적어주세요</p>
+              <p class="text-gray-500 text-base leading-relaxed">오늘 활동을 말하듯<br>편하게 적어주세요</p>
             </div>
             <div class="text-center">
               <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/25">
                 <span class="text-2xl font-bold text-white">2</span>
               </div>
               <h3 class="font-bold text-lg text-gray-800 mb-2">AI가 변환</h3>
-              <p class="text-gray-500 text-sm leading-relaxed">AI가 전문적인 서류로<br>자동 변환합니다</p>
+              <p class="text-gray-500 text-base leading-relaxed">AI가 전문적인 서류로<br>자동 변환합니다</p>
             </div>
             <div class="text-center">
               <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/25">
                 <span class="text-2xl font-bold text-white">3</span>
               </div>
               <h3 class="font-bold text-lg text-gray-800 mb-2">바로 완성</h3>
-              <p class="text-gray-500 text-sm leading-relaxed">확인하고 저장하면<br>서류 작성 끝!</p>
+              <p class="text-gray-500 text-base leading-relaxed">확인하고 저장하면<br>서류 작성 끝!</p>
             </div>
           </div>
         </div>
@@ -416,17 +416,17 @@ const renderLanding = () => {
         <div class="max-w-4xl mx-auto px-6">
           <div class="text-center mb-10">
             <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-3">합리적인 요금제</h2>
-            <p class="text-gray-500">하루 200원으로 서류 걱정 끝</p>
+            <p class="text-gray-500 text-lg">하루 200원으로 서류 걱정 끝</p>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- 월간 -->
             <div class="bg-white border border-gray-200 rounded-2xl p-7 hover:border-indigo-200 hover:shadow-md transition-all shadow-sm">
-              <span class="text-xs px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">월간</span>
+              <span class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">월간</span>
               <div class="mt-5 mb-4">
                 <span class="text-4xl font-extrabold text-gray-800">6,000</span>
-                <span class="text-gray-400 text-sm">원 / 월</span>
+                <span class="text-gray-400 text-base">원 / 월</span>
               </div>
-              <ul class="text-sm text-gray-600 space-y-3 mb-7">
+              <ul class="text-base text-gray-600 space-y-3 mb-7">
                 <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 복서방 시리즈 전체 이용</li>
                 <li class="flex items-center gap-2"><span class="text-green-500">✓</span> AI 관찰일지 무제한 작성</li>
                 <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 언제든 해지 가능</li>
@@ -436,16 +436,16 @@ const renderLanding = () => {
             <!-- 연간 -->
             <div class="bg-white border-2 border-indigo-400 rounded-2xl p-7 relative hover:shadow-lg transition-all shadow-sm">
               <div class="absolute -top-3 right-5">
-                <span class="px-4 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold rounded-full shadow-md">추천</span>
+                <span class="px-4 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-bold rounded-full shadow-md">추천</span>
               </div>
-              <span class="text-xs px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">연간</span>
-              <span class="text-xs px-3 py-1 rounded-full bg-red-100 text-red-600 font-medium ml-2">17% 할인</span>
+              <span class="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">연간</span>
+              <span class="text-sm px-3 py-1 rounded-full bg-red-100 text-red-600 font-medium ml-2">17% 할인</span>
               <div class="mt-5 mb-1">
                 <span class="text-4xl font-extrabold text-gray-800">60,000</span>
-                <span class="text-gray-400 text-sm">원 / 년</span>
+                <span class="text-gray-400 text-base">원 / 년</span>
               </div>
-              <p class="text-xs text-gray-400 mb-4">월 5,000원 꼴 · 연 12,000원 절약</p>
-              <ul class="text-sm text-gray-600 space-y-3 mb-7">
+              <p class="text-sm text-gray-400 mb-4">월 5,000원 꼴 · 연 12,000원 절약</p>
+              <ul class="text-base text-gray-600 space-y-3 mb-7">
                 <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 복서방 시리즈 전체 이용</li>
                 <li class="flex items-center gap-2"><span class="text-green-500">✓</span> AI 관찰일지 무제한 작성</li>
                 <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 연 12,000원 절약</li>
@@ -453,7 +453,7 @@ const renderLanding = () => {
               <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl font-semibold transition-all shadow-md shadow-indigo-500/20">시작하기</button>
             </div>
           </div>
-          <p class="text-center text-sm text-gray-400 mt-6">💡 회원가입 시 <strong class="text-indigo-600">10일 무료체험</strong> 제공 · 카드정보 없이 바로 시작</p>
+          <p class="text-center text-base text-gray-400 mt-6">💡 회원가입 시 <strong class="text-indigo-600">10일 무료체험</strong> 제공 · 카드정보 없이 바로 시작</p>
         </div>
       </section>
 
@@ -463,7 +463,7 @@ const renderLanding = () => {
           <h2 class="text-3xl sm:text-4xl font-bold text-white mb-5">
             지금 바로 시작해보세요
           </h2>
-          <p class="text-lg text-indigo-100 mb-8">10일 무료체험 · 카드정보 불필요 · 1분이면 가입 완료</p>
+          <p class="text-xl text-indigo-100 mb-8">10일 무료체험 · 카드정보 불필요 · 1분이면 가입 완료</p>
           <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="group px-10 py-4 bg-white hover:bg-gray-50 text-indigo-700 font-bold text-lg rounded-2xl transition-all shadow-xl hover:-translate-y-0.5">
             무료체험 시작하기 →
           </button>
@@ -472,7 +472,7 @@ const renderLanding = () => {
 
       <!-- 푸터 -->
       <footer class="relative z-10 bg-white border-t border-gray-200 py-8">
-        <div class="max-w-6xl mx-auto px-6 text-center text-xs text-gray-400 space-y-2">
+        <div class="max-w-6xl mx-auto px-6 text-center text-sm text-gray-400 space-y-2">
           <p>복서방 | 대표: 천만석 | 사업자등록번호: 355-18-02470</p>
           <p>전북특별자치도 군산시 신평2길 12-7, 402호</p>
           <p>
