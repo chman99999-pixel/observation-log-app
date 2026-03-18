@@ -273,17 +273,8 @@ const renderLanding = () => {
             관찰일지, 기록지, 계획서까지 —<br class="sm:hidden">
             말하듯 입력하면 <strong class="text-indigo-600">AI가 전문적인 서류로</strong> 변환합니다
           </p>
-        </div>
-
-        <!-- 히어로 이미지 -->
-        <div class="land-fadeUp land-delay-2 mb-10">
-          <div class="max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-gray-200">
-            <img src="/images/랜딩페이지-2.jpg" alt="AI로 서류 업무 끝, 더 따뜻한 복지를 위해 - 복지인 서류해방" class="w-full h-auto">
-          </div>
-        </div>
-
-        <!-- CTA 버튼 -->
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center land-fadeUp land-delay-3 mb-10">
+          <!-- CTA 버튼 -->
+          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center land-fadeUp land-delay-2 mb-10">
           <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-2xl transition-all shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/35 hover:-translate-y-0.5 relative overflow-hidden">
             <span class="relative z-10">10일 무료체험 시작하기</span>
             <div class="absolute inset-0 land-shimmer"></div>
@@ -291,6 +282,13 @@ const renderLanding = () => {
           <button onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})" class="px-8 py-4 border border-gray-300 hover:border-indigo-300 text-gray-600 hover:text-indigo-700 font-medium text-lg rounded-2xl transition-all hover:bg-white">
             서비스 둘러보기 ↓
           </button>
+        </div>
+
+        <!-- 히어로 이미지 -->
+        <div class="land-fadeUp land-delay-3 mb-10">
+          <div class="max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-gray-200">
+            <img src="/images/랜딩페이지-2.jpg" alt="AI로 서류 업무 끝, 더 따뜻한 복지를 위해 - 복지인 서류해방" class="w-full h-auto">
+          </div>
         </div>
 
         <!-- 앱 아이콘 미리보기 -->
