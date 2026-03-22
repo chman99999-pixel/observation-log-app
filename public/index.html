@@ -1186,7 +1186,7 @@ const renderAdmin = () => {
         <div id="adminTabContent">
         ${state.tab === 'dashboard' ? '<div id="dashboardPlaceholder"><p class="text-center py-8 text-gray-400">로딩 중...</p></div>' : ''}
         ${state.tab === 'logs' ? renderLogs(filteredLogs, users, organizations) : ''}
-        ${state.tab === 'users' ? renderUsers(filteredUsers, organizations) : ''}
+        ${state.tab === 'users' ? '<div id="usersPlaceholder"><p class="text-center py-8 text-gray-400">로딩 중...</p></div>' : ''}
         ${state.tab === 'subscriptions' ? '<div id="subscriptionsPlaceholder"><p class="text-center py-8 text-gray-400">로딩 중...</p></div>' : ''}
         ${state.tab === 'plans' ? renderAdminPlans() : ''}
         ${state.tab === 'settings' ? renderSettings() : ''}
@@ -1201,6 +1201,13 @@ const renderAdmin = () => {
       const s = getStats();
       const el = document.getElementById('dashboardPlaceholder');
       if (el) el.outerHTML = renderDashboard(s, users);
+    })();
+  }
+  if (state.tab === 'users') {
+    (async () => {
+      await ensureAdminStats();
+      const el = document.getElementById('usersPlaceholder');
+      if (el) el.outerHTML = renderUsers(filteredUsers, organizations);
     })();
   }
   if (state.tab === 'subscriptions') {
@@ -1452,12 +1459,38 @@ const renderLogs = (filteredLogs, users, organizations) => {
 };
 
 const getSubLabel = (u) => {
+  // adminStats에서 실제 구독 상태 조회
+  const subs = state.adminStats?.subscriptions || [];
+  const userSub = subs
+    .filter(s => s.user_id === u.id)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
+  if (userSub) {
+    const end = userSub.current_period_end ? new Date(userSub.current_period_end) : null;
+    const days = end ? Math.ceil((end - new Date()) / 86400000) : 0;
+    const statusMap = {
+      'active': { text: '구독중', cls: 'bg-green-100 text-green-700' },
+      'trial': { text: '체험중', cls: 'bg-blue-100 text-blue-700' },
+      'cancelled': { text: '해지', cls: 'bg-gray-100 text-gray-600' },
+      'expired': { text: '만료', cls: 'bg-red-100 text-red-700' },
+      'past_due': { text: '연체', cls: 'bg-orange-100 text-orange-700' },
+    };
+    const label = statusMap[userSub.status] || { text: userSub.status, cls: 'bg-gray-100 text-gray-600' };
+    if ((userSub.status === 'active' || userSub.status === 'trial') && days > 0 && days <= 3) {
+      return { text: `${label.text} D-${days}`, cls: 'bg-amber-100 text-amber-700' };
+    }
+    if ((userSub.status === 'active' || userSub.status === 'trial') && end && days <= 0) {
+      return { text: '만료', cls: 'bg-red-100 text-red-700' };
+    }
+    return label;
+  }
+
+  // subscriptions 데이터 없으면 subscription_end로 폴백
   if (!u.subscription_end) return { text: '미구독', cls: 'bg-gray-100 text-gray-600' };
   const end = new Date(u.subscription_end);
   const days = Math.ceil((end - new Date()) / 86400000);
   if (days <= 0) return { text: '만료', cls: 'bg-red-100 text-red-700' };
   if (days <= 3) return { text: 'D-' + days, cls: 'bg-amber-100 text-amber-700' };
-  if (days <= 10) return { text: '체험중', cls: 'bg-blue-100 text-blue-700' };
   return { text: '구독중', cls: 'bg-green-100 text-green-700' };
 };
 
