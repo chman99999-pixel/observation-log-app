@@ -2,11 +2,7 @@ import supabase from './_utils/supabase.js';
 import { authenticateRequest } from './_utils/auth.js';
 import { getPayment } from './_utils/portone.js';
 
-// 요금제 정보 (프론트엔드와 동일하게 유지)
-const PLAN_PRICES = {
-  monthly: 6000,
-  yearly: 60000,
-};
+// 요금제 가격은 DB(plans 테이블)에서 조회 - 하드코딩 제거
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -30,9 +26,16 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'paymentId와 planType은 필수입니다.' });
       }
 
-      const expectedAmount = PLAN_PRICES[planType];
-      if (!expectedAmount) {
-        return res.status(400).json({ error: '유효하지 않은 요금제입니다.' });
+      // DB에서 요금제 정보 조회 (하드코딩 제거)
+      const { data: plan, error: planError } = await supabase
+        .from('plans')
+        .select('*')
+        .eq('id', planType)
+        .eq('is_active', true)
+        .single();
+
+      if (planError || !plan) {
+        return res.status(400).json({ error: '유효한 요금제를 찾을 수 없습니다.' });
       }
 
       // 포트원 API로 결제 정보 조회 및 검증
@@ -49,32 +52,22 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: `결제가 완료되지 않았습니다. (상태: ${paymentInfo.status})` });
       }
 
-      // 결제 금액 검증 (위변조 방지)
+      // 결제 금액 검증 (DB의 plan 가격과 비교 - 위변조 방지)
       const paidAmount = paymentInfo.amount?.total;
-      if (paidAmount !== expectedAmount) {
-        console.error(`결제 금액 불일치: 기대=${expectedAmount}, 실제=${paidAmount}`);
+      if (paidAmount !== plan.price) {
+        console.error(`결제 금액 불일치: 기대=${plan.price}, 실제=${paidAmount}`);
         return res.status(400).json({ error: '결제 금액이 일치하지 않습니다.' });
-      }
-
-      // 요금제 정보 조회
-      const { data: plan, error: planError } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('type', planType)
-        .eq('is_active', true)
-        .single();
-
-      if (planError || !plan) {
-        return res.status(400).json({ error: '유효한 요금제를 찾을 수 없습니다.' });
       }
 
       // 구독 시작/갱신
       const now = new Date();
       const endDate = new Date(now);
-      if (planType === 'monthly') {
+      if (plan.interval === 'month') {
         endDate.setMonth(endDate.getMonth() + 1);
-      } else {
+      } else if (plan.interval === 'year') {
         endDate.setFullYear(endDate.getFullYear() + 1);
+      } else {
+        endDate.setMonth(endDate.getMonth() + 1); // 기본 1개월
       }
       const subscriptionEnd = endDate.toISOString().split('T')[0];
 

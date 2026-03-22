@@ -7,14 +7,14 @@ export default async function handler(req, res) {
   try {
     // 사용자 조회 (비밀번호 필드 제외)
     if (action === 'getUsers') {
-      const { data, error } = await supabase.from('users').select('id, name, role, organization, subscription_end').order('name');
+      const { data, error } = await supabase.from('users').select('id, name, role, organization, subscription_end, email, phone').order('name');
       if (error) throw error;
       return res.status(200).json(data || []);
     }
 
     // 사용자 추가 (관리자 전용 - 비밀번호 bcrypt 해시)
     if (action === 'addUser') {
-      const { id, password, name, role, organization, subscription_end } = req.body;
+      const { id, password, name, role, organization, subscription_end, email, phone } = req.body;
       const hashed = hashPassword(password);
       const { error } = await supabase.from('users').insert([{
         id,
@@ -22,7 +22,9 @@ export default async function handler(req, res) {
         name,
         role: role || 'user',
         organization: organization || '감사합니다',
-        subscription_end: subscription_end || '2026-02-20'
+        subscription_end: subscription_end || '2026-02-20',
+        email: email || null,
+        phone: phone || null,
       }]);
       if (error) throw error;
       return res.status(200).json({ success: true });
@@ -30,12 +32,14 @@ export default async function handler(req, res) {
 
     // 사용자 수정 (비밀번호 변경 시 bcrypt 해시)
     if (action === 'updateUser') {
-      const { id, password, name, organization, subscription_end } = req.body;
+      const { id, password, name, organization, subscription_end, email, phone } = req.body;
       const updateData = {};
       if (password) updateData.password = hashPassword(password);
       if (name) updateData.name = name;
       if (organization !== undefined) updateData.organization = organization;
       if (subscription_end !== undefined) updateData.subscription_end = subscription_end;
+      if (email !== undefined) updateData.email = email;
+      if (phone !== undefined) updateData.phone = phone;
 
       const { error } = await supabase.from('users').update(updateData).eq('id', id);
       if (error) throw error;
@@ -49,6 +53,64 @@ export default async function handler(req, res) {
       if (error) throw error;
       return res.status(200).json({ success: true });
     }
+
+    // ============ 관리자 통계 ============
+
+    // 관리자 대시보드 통합 통계
+    if (action === 'getAdminStats') {
+      const [subsResult, payResult] = await Promise.all([
+        supabase.from('subscriptions').select('*'),
+        supabase.from('payments').select('*').order('paid_at', { ascending: false }),
+      ]);
+      return res.status(200).json({
+        subscriptions: subsResult.data || [],
+        payments: payResult.data || [],
+      });
+    }
+
+    // ============ 상품(요금제) 관리 ============
+
+    // 전체 상품 조회
+    if (action === 'getPlans') {
+      const { data, error } = await supabase.from('plans').select('*').order('price', { ascending: true });
+      if (error) throw error;
+      return res.status(200).json(data || []);
+    }
+
+    // 상품 추가
+    if (action === 'addPlan') {
+      const { id, name, price, interval, is_active, is_popular, description } = req.body;
+      const { data, error } = await supabase.from('plans').insert([{
+        id, name, price, interval, is_active: is_active !== false, is_popular: is_popular || false, description: description || '',
+      }]).select().single();
+      if (error) throw error;
+      return res.status(200).json(data);
+    }
+
+    // 상품 수정
+    if (action === 'updatePlan') {
+      const { id, name, price, is_active, is_popular, description } = req.body;
+      const updateData = {};
+      if (name !== undefined) updateData.name = name;
+      if (price !== undefined) updateData.price = price;
+      if (is_active !== undefined) updateData.is_active = is_active;
+      if (is_popular !== undefined) updateData.is_popular = is_popular;
+      if (description !== undefined) updateData.description = description;
+
+      const { data, error } = await supabase.from('plans').update(updateData).eq('id', id).select().single();
+      if (error) throw error;
+      return res.status(200).json(data);
+    }
+
+    // 상품 삭제
+    if (action === 'deletePlan') {
+      const { id } = req.body;
+      const { error } = await supabase.from('plans').delete().eq('id', id);
+      if (error) throw error;
+      return res.status(200).json({ success: true });
+    }
+
+    // ============ 로그 관리 ============
 
     // 로그 조회
     if (action === 'getLogs') {
@@ -101,6 +163,8 @@ export default async function handler(req, res) {
       if (error) throw error;
       return res.status(200).json({ success: true, deletedCount: count });
     }
+
+    // ============ 설정 ============
 
     // 설정 조회
     if (action === 'getSettings') {
