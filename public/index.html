@@ -2762,7 +2762,9 @@ const loginWithKakao = () => {
   });
 };
 
-// ====== 구글 로그인 (팝업) ======
+// ====== 구글 로그인 (Google Identity Services - Token Client 팝업) ======
+let _googleTokenClient = null;
+
 const loginWithGoogle = () => {
   const clientId = state.appConfig?.googleClientId;
   if (!window.google?.accounts?.oauth2 || !clientId) {
@@ -2770,54 +2772,32 @@ const loginWithGoogle = () => {
     return;
   }
 
-  // 팝업 윈도우를 먼저 열어서 팝업 차단 방지
-  const popup = _openSocialPopup('about:blank', 'googleLogin');
-
-  // Google OAuth URL 직접 구성
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: window.location.origin,
-    response_type: 'token',
-    scope: 'openid email profile',
-    prompt: 'select_account',
-  });
-  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-
-  if (popup) {
-    popup.location.href = authUrl;
-  } else {
-    // 팝업 차단 시 새 탭으로 폴백
-    window.open(authUrl, '_blank');
+  if (!_googleTokenClient) {
+    _googleTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: 'openid email profile',
+      callback: async (tokenResponse) => {
+        if (tokenResponse.error) {
+          console.error('Google OAuth error:', tokenResponse);
+          alert('구글 로그인에 실패했습니다.');
+          return;
+        }
+        try {
+          const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+          });
+          const userInfo = await userRes.json();
+          await _handleSocialLoginResult('google', userInfo.sub, userInfo.email, userInfo.name);
+        } catch (e) {
+          console.error('Google login error:', e);
+          alert('서버 연결에 실패했습니다.');
+        }
+      }
+    });
   }
 
-  // 팝업에서 리다이렉트 후 access_token을 수신하는 폴링
-  const pollTimer = setInterval(async () => {
-    try {
-      if (!popup || popup.closed) {
-        clearInterval(pollTimer);
-        return;
-      }
-      const popupUrl = popup.location.href;
-      if (popupUrl.startsWith(window.location.origin)) {
-        clearInterval(pollTimer);
-        // URL fragment에서 access_token 추출
-        const hash = popup.location.hash.substring(1);
-        popup.close();
-        const params = new URLSearchParams(hash);
-        const accessToken = params.get('access_token');
-        if (!accessToken) return;
-
-        // 사용자 정보 조회
-        const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        const userInfo = await userRes.json();
-        await _handleSocialLoginResult('google', userInfo.sub, userInfo.email, userInfo.name);
-      }
-    } catch (e) {
-      // cross-origin 접근 시 에러 무시 (아직 Google 도메인에 있음)
-    }
-  }, 500);
+  // Google SDK가 자체적으로 팝업을 열어 계정 선택 화면 표시
+  _googleTokenClient.requestAccessToken({ prompt: 'select_account' });
 };
 
 const logout = () => {
