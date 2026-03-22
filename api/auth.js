@@ -261,6 +261,15 @@ export default async function handler(req, res) {
 
       if (error) throw error;
 
+      // 체험 구독 생성
+      await supabase.from('subscriptions').insert([{
+        user_id: id,
+        plan_id: null,
+        status: 'trial',
+        start_date: new Date().toISOString().split('T')[0],
+        end_date: subscription_end
+      }]);
+
       const newUser = { id, name, email, phone: phone.replace(/-/g, ''), role: 'user', organization: organization || '', subscription_end };
       const token = createToken(newUser);
       return res.status(201).json({ token, user: newUser });
