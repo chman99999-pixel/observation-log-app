@@ -1,5 +1,9 @@
 import supabase from './_utils/supabase.js';
 import { hashPassword, verifyPassword, isHashed, createToken, verifyToken, sanitizeUser } from './_utils/auth.js';
+import { Resend } from 'resend';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-me';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -260,6 +264,112 @@ export default async function handler(req, res) {
       const newUser = { id, name, email, phone: phone.replace(/-/g, ''), role: 'user', organization: organization || '', subscription_end };
       const token = createToken(newUser);
       return res.status(201).json({ token, user: newUser });
+    }
+
+    // ====== 비밀번호 재설정 요청 ======
+    if (action === 'requestPasswordReset') {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: '이메일 또는 아이디를 입력해주세요.' });
+      }
+
+      // email 또는 id로 사용자 검색
+      let user = null;
+      const { data: byEmail } = await supabase
+        .from('users').select('*').eq('email', email).single();
+      if (byEmail) {
+        user = byEmail;
+      } else {
+        const { data: byId } = await supabase
+          .from('users').select('*').eq('id', email).single();
+        if (byId) user = byId;
+      }
+
+      // 사용자 없음 → 보안상 동일 성공 메시지
+      if (!user) {
+        return res.status(200).json({ success: true, message: '등록된 이메일이 있다면 비밀번호 재설정 링크를 보내드렸습니다.' });
+      }
+
+      // 소셜 로그인 전용 사용자
+      if (!user.password && user.provider) {
+        const providerName = user.provider === 'kakao' ? '카카오' : 'Google';
+        return res.status(400).json({ error: `${providerName} 로그인으로 등록된 계정입니다. ${providerName}로 로그인해주세요.` });
+      }
+
+      // 이메일이 없는 레거시 사용자
+      if (!user.email) {
+        return res.status(400).json({ error: '등록된 이메일이 없습니다. 관리자에게 문의해주세요.\n📞 070-8065-0429' });
+      }
+
+      // 비밀번호 재설정 토큰 생성 (30분 만료)
+      const resetToken = jwt.sign(
+        { id: user.id, purpose: 'password-reset' },
+        JWT_SECRET,
+        { expiresIn: '30m' }
+      );
+
+      const resetUrl = `https://www.bokji-ai.co.kr?resetToken=${resetToken}`;
+
+      // Resend로 이메일 발송
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      await resend.emails.send({
+        from: '복서방 <noreply@bokji-ai.co.kr>',
+        to: user.email,
+        subject: '[복서방] 비밀번호 재설정 안내',
+        html: `
+          <div style="max-width:480px;margin:0 auto;padding:32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+            <h2 style="color:#1f2937;margin-bottom:16px;">비밀번호 재설정</h2>
+            <p style="color:#4b5563;line-height:1.6;">안녕하세요, <strong>${user.name || '회원'}</strong>님.</p>
+            <p style="color:#4b5563;line-height:1.6;">아래 버튼을 클릭하여 비밀번호를 재설정해주세요.<br>이 링크는 <strong>30분</strong> 동안 유효합니다.</p>
+            <div style="text-align:center;margin:32px 0;">
+              <a href="${resetUrl}" style="display:inline-block;padding:14px 32px;background:#4f46e5;color:#fff;text-decoration:none;border-radius:12px;font-weight:600;font-size:16px;">비밀번호 재설정하기</a>
+            </div>
+            <p style="color:#9ca3af;font-size:13px;line-height:1.5;">본인이 요청하지 않았다면 이 이메일을 무시해주세요.</p>
+            <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+            <p style="color:#9ca3af;font-size:12px;">복서방 | 복지인 서류해방</p>
+          </div>
+        `
+      });
+
+      return res.status(200).json({ success: true, message: '비밀번호 재설정 이메일을 보내드렸습니다. 메일함을 확인해주세요.' });
+    }
+
+    // ====== 비밀번호 재설정 실행 ======
+    if (action === 'resetPassword') {
+      const { token, newPassword } = req.body;
+      if (!token || !newPassword) {
+        return res.status(400).json({ error: '필수 정보가 누락되었습니다.' });
+      }
+
+      if (newPassword.length < 4) {
+        return res.status(400).json({ error: '비밀번호는 4자 이상이어야 합니다.' });
+      }
+
+      // 토큰 검증
+      let decoded;
+      try {
+        decoded = jwt.verify(token, JWT_SECRET);
+      } catch (e) {
+        if (e.name === 'TokenExpiredError') {
+          return res.status(400).json({ error: '재설정 링크가 만료되었습니다. 다시 요청해주세요.' });
+        }
+        return res.status(400).json({ error: '유효하지 않은 링크입니다.' });
+      }
+
+      if (decoded.purpose !== 'password-reset') {
+        return res.status(400).json({ error: '유효하지 않은 링크입니다.' });
+      }
+
+      // 비밀번호 업데이트
+      const hashed = hashPassword(newPassword);
+      const { error } = await supabase
+        .from('users')
+        .update({ password: hashed })
+        .eq('id', decoded.id);
+
+      if (error) throw error;
+
+      return res.status(200).json({ success: true, message: '비밀번호가 변경되었습니다. 새 비밀번호로 로그인해주세요.' });
     }
 
     return res.status(400).json({ error: 'Invalid action' });
