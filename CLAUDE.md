@@ -75,6 +75,24 @@ const MODEL_MAP = {
 - **결제**: 포트원(PortOne) V2
 - **추가 패키지**: bcryptjs, jsonwebtoken (Phase 1에서 추가)
 
+## 포트원 V2 결제 연동 (Phase 3)
+- **PG사**: KG이니시스 (테스트 채널)
+- **채널명**: 복서방-KG이니시스-테스트
+- **MID**: INIBillTst (정기결제 테스트용)
+- **결제 모듈**: V2 (inicis_v2)
+- **SDK**: https://cdn.portone.io/v2/browser-sdk.js
+- **환경변수** (Vercel에 설정 필요):
+  - `PORTONE_STORE_ID`: 포트원 상점아이디 (store-xxxx 형식)
+  - `PORTONE_CHANNEL_KEY`: 채널키 (channel-key-xxxx 형식, 포트원 콘솔 > 결제 연동 > 연동 정보에서 확인)
+  - `PORTONE_API_SECRET`: 포트원 API 시크릿 (포트원 콘솔 > API & Webhook > API Keys)
+  - `PORTONE_WEBHOOK_SECRET`: 웹훅 시크릿 (선택, 포트원 콘솔 > API & Webhook > Webhooks)
+- **API 엔드포인트**:
+  - `/api/payment?action=saveBillingKey` - 빌링키 저장 + 첫 결제
+  - `/api/payment?action=status` - 구독/결제 상태 조회
+  - `/api/payment?action=cancel` - 구독 해지
+  - `/api/webhook` - 포트원 웹훅 수신
+- **결제 흐름**: 프론트(SDK) → 빌링키 발급 → 서버 검증 + 저장 → 빌링키로 결제 → 구독 활성화
+
 ## 주의사항
 - git push로 `.github/workflows/` 파일 수정 시 OAuth 토큰에 `workflow` scope 필요
   - 현재 토큰에 해당 권한 없음 → Chrome 브라우저에서 GitHub 직접 편집 필요

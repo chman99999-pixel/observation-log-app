@@ -7,5 +7,11 @@ export default function handler(req, res) {
     return res.status(200).end();
   }
 
-  res.status(200).json({ accessCode: process.env.APP_ACCESS_CODE ?? '2026' });
+  res.status(200).json({
+    accessCode: process.env.APP_ACCESS_CODE ?? '2026',
+    portone: {
+      storeId: process.env.PORTONE_STORE_ID || '',
+      channelKey: process.env.PORTONE_CHANNEL_KEY || '',
+    },
+  });
 }

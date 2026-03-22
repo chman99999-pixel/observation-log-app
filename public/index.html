@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>복지인 서류해방</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
   <style>
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes pulse-fade { 0%,100% { opacity:.4; transform:scale(.85); } 50% { opacity:1; transform:scale(1); } }
@@ -95,6 +96,11 @@ const loadData = async () => {
     state.users = users;
     state.logs = logs;
     state.appConfig = cfg;
+    // 포트원 설정 로드
+    if (cfg.portone) {
+      PORTONE_STORE_ID = cfg.portone.storeId || '';
+      PORTONE_CHANNEL_KEY = cfg.portone.channelKey || '';
+    }
     const aiModelSetting = settings.find(s => s.key === 'ai_model');
     if (aiModelSetting) state.aiModel = aiModelSetting.value;
     state.dataLoaded = true;
@@ -904,7 +910,7 @@ const renderSubscription = () => {
                 <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>기록지·계획서 자동화</li>
                 <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>월 단위 자유롭게 해지 가능</li>
               </ul>
-              <button disabled class="w-full py-3 rounded-xl font-semibold text-sm bg-gray-200 text-gray-400 cursor-not-allowed">🔜 준비 중</button>
+              <button onclick="startPayment('monthly')" id="btn-monthly" class="w-full py-3 rounded-xl font-semibold text-sm bg-indigo-100 hover:bg-indigo-200 text-indigo-700 transition-all">💳 월간 구독 시작</button>
             </div>
 
             <!-- 연간 플랜 -->
@@ -928,11 +934,24 @@ const renderSubscription = () => {
                 <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>기록지·계획서 자동화</li>
                 <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>연간 결제로 12,000원 절약</li>
               </ul>
-              <button disabled class="w-full py-3 rounded-xl font-semibold text-sm bg-gray-200 text-gray-400 cursor-not-allowed">🔜 준비 중</button>
+              <button onclick="startPayment('yearly')" id="btn-yearly" class="w-full py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all shadow-md shadow-indigo-500/20">💳 연간 구독 시작</button>
             </div>
 
           </div>
         </div>
+
+        <!-- 구독 해지 (활성 구독자만 표시) -->
+        ${subDaysLeft !== null && subDaysLeft > 0 ? `
+        <div class="bg-white rounded-2xl shadow-md p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-gray-700 mb-1">구독 관리</h2>
+              <p class="text-sm text-gray-400">구독 해지 시 만료일까지 서비스 이용 가능</p>
+            </div>
+            <button onclick="cancelSubscription()" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-medium transition-colors">구독 해지</button>
+          </div>
+        </div>
+        ` : ''}
 
         <!-- 안내 사항 -->
         <div class="bg-white rounded-2xl shadow-md p-6">
@@ -941,6 +960,7 @@ const renderSubscription = () => {
             <li>• 회원가입 시 <strong class="text-indigo-600">10일 무료 체험</strong>이 제공됩니다.</li>
             <li>• 무료 체험 기간 중 결제하지 않으면 자동으로 서비스가 중단됩니다.</li>
             <li>• 구독은 언제든 해지할 수 있으며, 남은 기간까지 사용 가능합니다.</li>
+            <li>• 결제는 포트원을 통해 안전하게 처리됩니다.</li>
             <li>• 결제 관련 문의: <strong>복서방 고객센터</strong></li>
           </ul>
           <div class="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400">
@@ -1555,6 +1575,155 @@ const closeUserModal = () => {
   state.editingUser = null;
 };
 
+// ============ 포트원 V2 결제 ============
+
+// 포트원 설정값 (서버 appConfig에서 로드)
+let PORTONE_STORE_ID = '';
+let PORTONE_CHANNEL_KEY = '';
+
+const PLAN_INFO = {
+  monthly: { name: '월간 구독', price: 6000 },
+  yearly: { name: '연간 구독', price: 60000 },
+};
+
+const startPayment = async (planType) => {
+  if (!state.user) {
+    alert('로그인이 필요합니다.');
+    return;
+  }
+
+  if (!window.PortOne) {
+    alert('결제 모듈을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+
+  if (!PORTONE_STORE_ID || !PORTONE_CHANNEL_KEY) {
+    alert('결제 설정이 완료되지 않았습니다. 관리자에게 문의해주세요.');
+    console.error('PortOne config missing: storeId=', PORTONE_STORE_ID, 'channelKey=', PORTONE_CHANNEL_KEY);
+    return;
+  }
+
+  const plan = PLAN_INFO[planType];
+  if (!plan) {
+    alert('유효하지 않은 요금제입니다.');
+    return;
+  }
+
+  const btn = document.getElementById(`btn-${planType === 'monthly' ? 'monthly' : 'yearly'}`);
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '결제 처리 중...';
+  }
+
+  try {
+    // 포트원 V2 SDK: 빌링키 발급 요청
+    const issueResponse = await PortOne.requestIssueBillingKey({
+      storeId: PORTONE_STORE_ID,
+      channelKey: PORTONE_CHANNEL_KEY,
+      billingKeyMethod: 'CARD',
+      issueName: `복서방 ${plan.name}`,
+      customer: {
+        customerId: state.user.id,
+        fullName: state.user.name,
+        email: state.user.email || undefined,
+      },
+    });
+
+    // 사용자가 결제창을 닫은 경우
+    if (issueResponse.code != null) {
+      console.log('빌링키 발급 취소/실패:', issueResponse.code, issueResponse.message);
+      if (issueResponse.code === 'USER_CANCEL') {
+        // 사용자 취소 - 조용히 처리
+      } else {
+        alert(`결제 오류: ${issueResponse.message || '알 수 없는 오류'}`);
+      }
+      return;
+    }
+
+    // 빌링키 발급 성공 → 서버에 저장 + 첫 결제 실행
+    const billingKey = issueResponse.billingKey;
+
+    const response = await fetch('/api/payment?action=saveBillingKey', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ billingKey, planType }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || '결제 처리 중 오류가 발생했습니다.');
+    }
+
+    // 구독 정보 업데이트
+    state.user.subscription_end = result.subscription_end;
+
+    // 성공 모달 표시
+    showPaymentSuccessModal(plan.name, result.amount, result.subscription_end);
+
+  } catch (error) {
+    console.error('결제 오류:', error);
+    alert(`결제 처리 중 오류가 발생했습니다.\n${error.message}`);
+  } finally {
+    // 버튼 복원
+    if (btn) {
+      btn.disabled = false;
+      if (planType === 'monthly') {
+        btn.textContent = '💳 월간 구독 시작';
+      } else {
+        btn.textContent = '💳 연간 구독 시작';
+      }
+    }
+  }
+};
+
+const showPaymentSuccessModal = (planName, amount, subscriptionEnd) => {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+  modal.onclick = (e) => { if (e.target === modal) { modal.remove(); renderSubscription(); } };
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:32px;max-width:400px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+      <h2 style="font-size:20px;font-weight:700;color:#4f46e5;margin-bottom:8px;">구독 완료!</h2>
+      <p style="font-size:15px;color:#374151;margin-bottom:16px;">
+        <strong>${planName}</strong> 구독이 시작되었습니다.<br>
+        <span style="color:#6b7280;font-size:13px;">결제 금액: ${amount?.toLocaleString()}원</span><br>
+        <span style="color:#6b7280;font-size:13px;">구독 만료일: ${subscriptionEnd}</span>
+      </p>
+      <button onclick="this.closest('div[style]').parentElement.remove();renderSubscription()"
+        style="padding:10px 32px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">
+        확인
+      </button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+};
+
+const cancelSubscription = async () => {
+  if (!confirm('구독을 해지하시겠습니까?\n만료일까지는 계속 서비스를 이용할 수 있습니다.')) return;
+
+  try {
+    const response = await fetch('/api/payment?action=cancel', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error);
+
+    alert(`구독이 해지되었습니다.\n${result.subscription_end}까지 서비스를 이용하실 수 있습니다.`);
+    renderSubscription();
+  } catch (error) {
+    alert(`구독 해지 중 오류: ${error.message}`);
+  }
+};
+
 // ============ 구독 만료일 헬퍼 ============
 
 const getSubscriptionDaysLeft = (user) => {
@@ -1583,16 +1752,21 @@ const showSubscriptionAlert = (daysLeft, subscriptionEnd) => {
         구독이 <strong style="color:#dc2626;">${dayText}</strong> 만료됩니다.<br>
         <span style="color:#6b7280;font-size:13px;">만료일: ${subscriptionEnd}</span>
       </p>
-      <div style="background:#fef3c7;border-radius:12px;padding:16px;margin-bottom:20px;text-align:left;">
-        <p style="font-size:14px;color:#92400e;font-weight:600;margin-bottom:8px;">구독을 더 원하시면 아래 계좌로 입금해주세요.</p>
-        <p style="font-size:15px;color:#78350f;margin-bottom:4px;">💰 <strong>월 구독료: 3,000원</strong></p>
-        <p style="font-size:14px;color:#78350f;">🏦 국민은행 452-21-1127-429</p>
-        <p style="font-size:14px;color:#78350f;">👤 천만석</p>
+      <div style="background:#eef2ff;border-radius:12px;padding:16px;margin-bottom:20px;text-align:left;">
+        <p style="font-size:14px;color:#4338ca;font-weight:600;margin-bottom:8px;">구독을 연장하시면 서비스를 계속 이용할 수 있습니다.</p>
+        <p style="font-size:15px;color:#4338ca;margin-bottom:4px;">💎 <strong>월간 6,000원 / 연간 60,000원</strong></p>
+        <p style="font-size:13px;color:#6366f1;">카드 결제로 간편하게 구독하세요!</p>
       </div>
-      <button onclick="document.getElementById('subscriptionAlertModal').remove()"
-        style="background:#4f46e5;color:#fff;border:none;border-radius:10px;padding:10px 32px;font-size:15px;font-weight:600;cursor:pointer;">
-        확인
-      </button>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button onclick="document.getElementById('subscriptionAlertModal').remove();state.tab='subscription';render()"
+          style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:10px;padding:10px 24px;font-size:15px;font-weight:600;cursor:pointer;">
+          구독하기
+        </button>
+        <button onclick="document.getElementById('subscriptionAlertModal').remove()"
+          style="background:#f3f4f6;color:#6b7280;border:none;border-radius:10px;padding:10px 24px;font-size:15px;font-weight:600;cursor:pointer;">
+          나중에
+        </button>
+      </div>
     </div>
   `;
   document.body.appendChild(modal);
