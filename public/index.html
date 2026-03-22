@@ -1615,6 +1615,17 @@ const startPayment = async (planType) => {
     btn.textContent = '결제 처리 중...';
   }
 
+  // 이메일 필수 체크 (KG이니시스 V2 빌링키 발급 시 필수)
+  let customerEmail = state.user.email;
+  if (!customerEmail) {
+    customerEmail = prompt('결제를 위해 이메일 주소를 입력해주세요.');
+    if (!customerEmail || !customerEmail.includes('@')) {
+      alert('올바른 이메일 주소를 입력해주세요.');
+      if (btn) { btn.disabled = false; btn.textContent = planType === 'monthly' ? '월간 구독 시작' : '연간 구독 시작'; }
+      return;
+    }
+  }
+
   try {
     // 포트원 V2 SDK: 빌링키 발급 요청
     const issueResponse = await PortOne.requestIssueBillingKey({
@@ -1625,7 +1636,7 @@ const startPayment = async (planType) => {
       customer: {
         customerId: state.user.id,
         fullName: state.user.name,
-        email: state.user.email || undefined,
+        email: customerEmail,
       },
     });
 
