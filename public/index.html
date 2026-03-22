@@ -1178,7 +1178,7 @@ const renderAdmin = () => {
           <button onclick="state.tab='logs';render()" class="px-4 py-2 rounded-lg font-medium ${state.tab==='logs'?'bg-indigo-600 text-white':'bg-gray-100 hover:bg-gray-200'}">📋 로그 관리</button>
           <button onclick="state.tab='users';render()" class="px-4 py-2 rounded-lg font-medium ${state.tab==='users'?'bg-indigo-600 text-white':'bg-gray-100 hover:bg-gray-200'}">👥 제공인력 관리</button>
           <button onclick="state.tab='subscriptions';render()" class="px-4 py-2 rounded-lg font-medium ${state.tab==='subscriptions'?'bg-indigo-600 text-white':'bg-gray-100 hover:bg-gray-200'}">💳 구독 관리</button>
-          <button onclick="state.tab='plans';render()" class="px-4 py-2 rounded-lg font-medium ${state.tab==='plans'?'bg-indigo-600 text-white':'bg-gray-100 hover:bg-gray-200'}">🏷️ 상품 관리</button>
+          <button onclick="state.tab='plans';render()" class="px-4 py-2 rounded-lg font-medium ${state.tab==='plans'?'bg-indigo-600 text-white':'bg-gray-100 hover:bg-gray-200'}">🏷️ 요금제 관리</button>
           <button onclick="state.tab='settings';render()" class="px-4 py-2 rounded-lg font-medium ${state.tab==='settings'?'bg-indigo-600 text-white':'bg-gray-100 hover:bg-gray-200'}">⚙️ 설정</button>
         </div>
 
@@ -1739,14 +1739,14 @@ const renderAdminSubscriptions = () => {
   `;
 };
 
-// ============ 상품 관리 탭 ============
+// ============ 요금제 관리 탭 ============
 
 const renderAdminPlans = () => {
   const plans = state.plans || [];
   return `
     <div class="space-y-6">
       <div class="flex justify-between items-center">
-        <h2 class="text-lg font-bold">🏷️ 상품 관리</h2>
+        <h2 class="text-lg font-bold">🏷️ 요금제 관리</h2>
         <button onclick="showPlanModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium">+ 상품 추가</button>
       </div>
 
@@ -1948,10 +1948,20 @@ const showAddUserModal = () => {
   document.body.appendChild(modal);
 };
 
-const showEditUserModal = (userId) => {
+const showEditUserModal = async (userId) => {
   const user = state.users.find(u => u.id === userId);
   if (!user) return;
   state.editingUser = user;
+
+  // 현재 구독 상태 조회
+  let currentSubStatus = '';
+  try {
+    const subData = await api('getUserSubscription', { user_id: userId });
+    if (subData && subData.subscription) {
+      currentSubStatus = subData.subscription.status || '';
+    }
+  } catch(e) { console.error('구독 상태 조회 실패:', e); }
+
   const modal = document.createElement('div');
   modal.id = 'userModal';
   modal.innerHTML = `
@@ -1986,6 +1996,17 @@ const showEditUserModal = (userId) => {
             <div>
               <label class="block text-sm font-medium mb-1">전화번호</label>
               <input id="modalUserPhone" type="tel" class="w-full px-4 py-2 border rounded-lg" value="${user.phone || ''}" placeholder="01012345678">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">구독상태</label>
+              <select id="modalUserSubStatus" class="w-full px-4 py-2 border rounded-lg">
+                <option value="">-- 변경 안함 --</option>
+                <option value="active" ${currentSubStatus==='active'?'selected':''}>✅ 구독중</option>
+                <option value="trial" ${currentSubStatus==='trial'?'selected':''}>🔵 체험중</option>
+                <option value="cancelled" ${currentSubStatus==='cancelled'?'selected':''}>⚫ 해지</option>
+                <option value="expired" ${currentSubStatus==='expired'?'selected':''}>🔴 만료</option>
+              </select>
+              <p class="text-xs text-gray-500 mt-1">현재: ${currentSubStatus ? {'active':'구독중','trial':'체험중','cancelled':'해지','expired':'만료'}[currentSubStatus] || currentSubStatus : '구독 없음'}</p>
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">구독만료일</label>
@@ -2560,8 +2581,19 @@ const updateUser = async() => {
   const email = document.getElementById('modalUserEmail').value.trim();
   const phone = document.getElementById('modalUserPhone').value.trim();
   const expire = document.getElementById('modalUserExpire').value;
+  const subStatus = document.getElementById('modalUserSubStatus').value;
 
   await api('updateUser', { id, password: pw, name, organization: org, email, phone, subscription_end: expire });
+
+  // 구독 상태 변경이 있으면 별도 API 호출
+  if (subStatus) {
+    try {
+      await api('updateSubscriptionStatus', { user_id: id, status: subStatus });
+    } catch(e) {
+      console.error('구독 상태 변경 실패:', e);
+      alert('구독 상태 변경에 실패했습니다: ' + (e.message || ''));
+    }
+  }
 
   const user = state.users.find(u => u.id === id);
   if(user) {
@@ -2571,6 +2603,9 @@ const updateUser = async() => {
     user.phone = phone;
     if(expire) user.subscription_end = expire;
   }
+
+  // adminStats 캐시 초기화 (구독 상태 변경 반영)
+  if (subStatus) state.adminStats = null;
 
   closeUserModal();
   render();

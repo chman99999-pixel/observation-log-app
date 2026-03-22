@@ -54,6 +54,77 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true });
     }
 
+    // 구독 상태 변경 (관리자 전용)
+    if (action === 'updateSubscriptionStatus') {
+      const { user_id, status } = req.body;
+      if (!user_id || !status) {
+        return res.status(400).json({ error: 'user_id와 status는 필수입니다.' });
+      }
+
+      const validStatuses = ['active', 'trial', 'cancelled', 'expired'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: '유효하지 않은 구독 상태입니다.' });
+      }
+
+      // 기존 활성/체험 구독이 있으면 상태 업데이트
+      const { data: existing } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user_id)
+        .in('status', ['active', 'trial'])
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        const updateData = { status };
+        if (status === 'cancelled') updateData.cancelled_at = new Date().toISOString();
+        const { error } = await supabase
+          .from('subscriptions')
+          .update(updateData)
+          .eq('id', existing[0].id);
+        if (error) throw error;
+      } else if (status === 'active' || status === 'trial') {
+        // 활성 구독이 없는데 구독중/체험중으로 변경 → 새 구독 생성
+        const now = new Date();
+        const endDate = new Date(now);
+        if (status === 'trial') {
+          endDate.setDate(endDate.getDate() + 10); // 체험 10일
+        } else {
+          endDate.setMonth(endDate.getMonth() + 1); // 기본 1개월
+        }
+        const { error } = await supabase.from('subscriptions').insert([{
+          user_id,
+          plan_id: status === 'trial' ? null : 'monthly',
+          status,
+          current_period_start: now.toISOString().split('T')[0],
+          current_period_end: endDate.toISOString().split('T')[0],
+        }]);
+        if (error) throw error;
+
+        // users 테이블 subscription_end도 업데이트
+        await supabase
+          .from('users')
+          .update({ subscription_end: endDate.toISOString().split('T')[0] })
+          .eq('id', user_id);
+      }
+
+      return res.status(200).json({ success: true });
+    }
+
+    // 사용자별 구독 상태 조회
+    if (action === 'getUserSubscription') {
+      const user_id = (req.body && req.body.user_id) || (req.query && req.query.user_id);
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user_id)
+        .in('status', ['active', 'trial'])
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      return res.status(200).json({ subscription: (data && data[0]) || null });
+    }
+
     // ============ 관리자 통계 ============
 
     // 관리자 대시보드 통합 통계
