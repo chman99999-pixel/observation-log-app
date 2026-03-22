@@ -1620,8 +1620,8 @@ const startPayment = async (planType) => {
   }
 
   try {
-    // 고유한 paymentId 생성 (ASCII만 허용)
-    const paymentId = `pay-${state.user.id}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    // 고유한 paymentId 생성 (KG이니시스 V2: ASCII만 허용)
+    const paymentId = `pay-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
 
     // 포트원 V2 SDK: 단건 결제 요청
     const paymentResponse = await PortOne.requestPayment({
