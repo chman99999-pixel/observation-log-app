@@ -1,4 +1,4 @@
-// 포트원 V2 API 유틸리티
+// 포트원 V2 API 유틸리티 (단건 결제용)
 const PORTONE_API_SECRET = process.env.PORTONE_API_SECRET;
 const PORTONE_API_URL = 'https://api.portone.io';
 
@@ -25,34 +25,11 @@ async function portoneRequest(method, path, body = null) {
   return data;
 }
 
-// 빌링키 정보 조회
-export async function getBillingKey(billingKey) {
-  return portoneRequest('GET', `/billing-keys/${billingKey}`);
-}
-
-// 빌링키로 결제 요청 (정기결제)
-export async function payWithBillingKey({ billingKey, paymentId, orderName, amount, currency = 'KRW', customer }) {
-  return portoneRequest('POST', `/payments/${encodeURIComponent(paymentId)}/billing-key`, {
-    billingKey,
-    orderName,
-    amount: { total: amount, currency },
-    customer,
-  });
-}
-
-// 결제 조회
+// 결제 조회 (단건 결제 검증용)
 export async function getPayment(paymentId) {
   return portoneRequest('GET', `/payments/${encodeURIComponent(paymentId)}`);
 }
 
-// 빌링키 삭제 (구독 해지 시)
-export async function deleteBillingKey(billingKey) {
-  return portoneRequest('DELETE', `/billing-keys/${billingKey}`);
-}
-
 export default {
-  getBillingKey,
-  payWithBillingKey,
   getPayment,
-  deleteBillingKey,
 };

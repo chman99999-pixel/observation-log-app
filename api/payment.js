@@ -1,6 +1,12 @@
 import supabase from './_utils/supabase.js';
 import { authenticateRequest } from './_utils/auth.js';
-import { getBillingKey, payWithBillingKey, getPayment } from './_utils/portone.js';
+import { getPayment } from './_utils/portone.js';
+
+// 요금제 정보 (프론트엔드와 동일하게 유지)
+const PLAN_PRICES = {
+  monthly: 6000,
+  yearly: 60000,
+};
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,43 +19,42 @@ export default async function handler(req, res) {
   const { action } = req.query;
 
   try {
-    // ====== 빌링키 발급 완료 처리 ======
-    // 프론트에서 PortOne SDK로 빌링키 발급 후, 서버에서 검증 및 저장
-    if (action === 'saveBillingKey') {
+    // ====== 단건 결제 검증 ======
+    // 프론트에서 PortOne SDK로 결제 완료 후, 서버에서 검증 및 구독 활성화
+    if (action === 'verify') {
       const user = authenticateRequest(req);
       if (!user) return res.status(401).json({ error: '인증이 필요합니다.' });
 
-      const { billingKey, planType } = req.body;
-      if (!billingKey || !planType) {
-        return res.status(400).json({ error: 'billingKey와 planType은 필수입니다.' });
+      const { paymentId, planType } = req.body;
+      if (!paymentId || !planType) {
+        return res.status(400).json({ error: 'paymentId와 planType은 필수입니다.' });
       }
 
-      // 포트원 API로 빌링키 유효성 검증
-      let billingKeyInfo;
+      const expectedAmount = PLAN_PRICES[planType];
+      if (!expectedAmount) {
+        return res.status(400).json({ error: '유효하지 않은 요금제입니다.' });
+      }
+
+      // 포트원 API로 결제 정보 조회 및 검증
+      let paymentInfo;
       try {
-        billingKeyInfo = await getBillingKey(billingKey);
+        paymentInfo = await getPayment(paymentId);
       } catch (err) {
-        console.error('빌링키 검증 실패:', err);
-        return res.status(400).json({ error: '빌링키 검증에 실패했습니다.' });
+        console.error('결제 조회 실패:', err);
+        return res.status(400).json({ error: '결제 정보를 확인할 수 없습니다.' });
       }
 
-      // 기존 빌링키가 있으면 비활성화
-      await supabase
-        .from('billing_keys')
-        .update({ is_active: false })
-        .eq('user_id', user.id)
-        .eq('is_active', true);
+      // 결제 상태 확인
+      if (paymentInfo.status !== 'PAID') {
+        return res.status(400).json({ error: `결제가 완료되지 않았습니다. (상태: ${paymentInfo.status})` });
+      }
 
-      // 새 빌링키 저장
-      const { error: insertError } = await supabase.from('billing_keys').insert([{
-        user_id: user.id,
-        billing_key: billingKey,
-        pg_provider: 'inicis_v2',
-        method: billingKeyInfo.methods?.[0]?.card?.name || 'card',
-        is_active: true,
-      }]);
-
-      if (insertError) throw insertError;
+      // 결제 금액 검증 (위변조 방지)
+      const paidAmount = paymentInfo.amount?.total;
+      if (paidAmount !== expectedAmount) {
+        console.error(`결제 금액 불일치: 기대=${expectedAmount}, 실제=${paidAmount}`);
+        return res.status(400).json({ error: '결제 금액이 일치하지 않습니다.' });
+      }
 
       // 요금제 정보 조회
       const { data: plan, error: planError } = await supabase
@@ -61,26 +66,6 @@ export default async function handler(req, res) {
 
       if (planError || !plan) {
         return res.status(400).json({ error: '유효한 요금제를 찾을 수 없습니다.' });
-      }
-
-      // 첫 결제 실행
-      const paymentId = `pay_${user.id}_${Date.now()}`;
-      let paymentResult;
-      try {
-        paymentResult = await payWithBillingKey({
-          billingKey,
-          paymentId,
-          orderName: `복서방 ${plan.name}`,
-          amount: plan.price,
-          currency: 'KRW',
-          customer: {
-            id: user.id,
-            name: user.name || undefined,
-          },
-        });
-      } catch (err) {
-        console.error('첫 결제 실패:', err);
-        return res.status(400).json({ error: '결제에 실패했습니다. 다른 카드로 다시 시도해주세요.' });
       }
 
       // 구독 시작/갱신
@@ -106,7 +91,6 @@ export default async function handler(req, res) {
         status: 'active',
         current_period_start: now.toISOString().split('T')[0],
         current_period_end: subscriptionEnd,
-        billing_key_id: billingKey,
       }]);
 
       if (subError) throw subError;
@@ -115,7 +99,6 @@ export default async function handler(req, res) {
       const { error: payError } = await supabase.from('payments').insert([{
         user_id: user.id,
         payment_id: paymentId,
-        billing_key: billingKey,
         plan_id: plan.id,
         amount: plan.price,
         currency: 'KRW',
@@ -163,17 +146,9 @@ export default async function handler(req, res) {
         .order('paid_at', { ascending: false })
         .limit(5);
 
-      // 활성 빌링키 존재 여부
-      const { data: billingKeys } = await supabase
-        .from('billing_keys')
-        .select('id, method, created_at')
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-
       return res.status(200).json({
         subscription: subscription || null,
         payments: payments || [],
-        hasBillingKey: (billingKeys && billingKeys.length > 0),
       });
     }
 
@@ -206,13 +181,6 @@ export default async function handler(req, res) {
         .eq('id', subscription.id);
 
       if (updateError) throw updateError;
-
-      // 빌링키 비활성화 (다음 결제 방지)
-      await supabase
-        .from('billing_keys')
-        .update({ is_active: false })
-        .eq('user_id', user.id)
-        .eq('is_active', true);
 
       return res.status(200).json({
         success: true,

@@ -86,12 +86,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true });
     }
 
-    // 빌링키 발급 이벤트
-    if (type === 'BillingKey.Issued') {
-      console.log('BillingKey issued:', data);
-      return res.status(200).json({ success: true });
-    }
-
     // 기타 이벤트는 200으로 응답 (재시도 방지)
     console.log('Unhandled webhook type:', type);
     return res.status(200).json({ message: 'Event type not handled' });

@@ -1619,68 +1619,46 @@ const startPayment = async (planType) => {
     btn.textContent = '결제 처리 중...';
   }
 
-  // KG이니시스 V2 빌링키 발급 시 이메일 + 휴대폰 번호 필수
-  let customerEmail = state.user.email;
-  if (!customerEmail) {
-    customerEmail = prompt('결제를 위해 이메일 주소를 입력해주세요.');
-    if (!customerEmail || !customerEmail.includes('@')) {
-      alert('올바른 이메일 주소를 입력해주세요.');
-      if (btn) { btn.disabled = false; btn.textContent = planType === 'monthly' ? '월간 구독 시작' : '연간 구독 시작'; }
-      return;
-    }
-  }
-
-  let customerPhone = state.user.phone;
-  if (!customerPhone) {
-    customerPhone = prompt('결제를 위해 휴대폰 번호를 입력해주세요.\n예: 01012345678');
-    if (!customerPhone || !/^01[0-9]{8,9}$/.test(customerPhone.replace(/-/g, ''))) {
-      alert('올바른 휴대폰 번호를 입력해주세요. (예: 01012345678)');
-      if (btn) { btn.disabled = false; btn.textContent = planType === 'monthly' ? '월간 구독 시작' : '연간 구독 시작'; }
-      return;
-    }
-    customerPhone = customerPhone.replace(/-/g, '');
-  }
-
   try {
-    // 고유한 issueId 생성 (KG이니시스 V2 필수, ASCII만 허용)
-    const issueId = `issue-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    // 고유한 paymentId 생성 (ASCII만 허용)
+    const paymentId = `pay-${state.user.id}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
-    // 포트원 V2 SDK: 빌링키 발급 요청
-    const issueResponse = await PortOne.requestIssueBillingKey({
+    // 포트원 V2 SDK: 단건 결제 요청
+    const paymentResponse = await PortOne.requestPayment({
       storeId: PORTONE_STORE_ID,
       channelKey: PORTONE_CHANNEL_KEY,
-      billingKeyMethod: 'CARD',
-      issueId: issueId,
-      issueName: `bokseobang ${planType}`,
+      paymentId: paymentId,
+      orderName: `복서방 ${plan.name}`,
+      totalAmount: plan.price,
+      currency: 'CURRENCY_KRW',
+      payMethod: 'CARD',
       customer: {
         customerId: state.user.id,
         fullName: state.user.name,
-        email: customerEmail,
-        phoneNumber: customerPhone,
+        email: state.user.email || undefined,
+        phoneNumber: state.user.phone || undefined,
       },
     });
 
     // 사용자가 결제창을 닫은 경우
-    if (issueResponse.code != null) {
-      console.log('빌링키 발급 취소/실패:', issueResponse.code, issueResponse.message);
-      if (issueResponse.code === 'USER_CANCEL') {
+    if (paymentResponse.code != null) {
+      console.log('결제 취소/실패:', paymentResponse.code, paymentResponse.message);
+      if (paymentResponse.code === 'USER_CANCEL') {
         // 사용자 취소 - 조용히 처리
       } else {
-        alert(`결제 오류: ${issueResponse.message || '알 수 없는 오류'}`);
+        alert(`결제 오류: ${paymentResponse.message || '알 수 없는 오류'}`);
       }
       return;
     }
 
-    // 빌링키 발급 성공 → 서버에 저장 + 첫 결제 실행
-    const billingKey = issueResponse.billingKey;
-
-    const response = await fetch('/api/payment?action=saveBillingKey', {
+    // 결제 성공 → 서버에서 검증 + 구독 활성화
+    const response = await fetch('/api/payment?action=verify', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`,
       },
-      body: JSON.stringify({ billingKey, planType }),
+      body: JSON.stringify({ paymentId, planType }),
     });
 
     const result = await response.json();
