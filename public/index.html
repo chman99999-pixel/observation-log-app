@@ -2732,11 +2732,7 @@ const loginWithKakao = () => {
     alert('카카오 로그인 준비 중입니다. 잠시 후 다시 시도해주세요.');
     return;
   }
-  // 팝업 윈도우를 먼저 열어서 팝업 차단 방지 (사용자 클릭 컨텍스트 유지)
-  const popup = _openSocialPopup('about:blank', 'kakaoLogin');
-  // 카카오 SDK는 내부적으로 팝업을 사용하므로, 미리 연 팝업을 닫고 SDK에 맡김
-  if (popup) popup.close();
-
+  // 카카오 SDK가 자체적으로 팝업을 열므로 직접 호출만 하면 됨
   Kakao.Auth.login({
     success: (authObj) => {
       Kakao.API.request({
