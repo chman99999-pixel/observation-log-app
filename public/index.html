@@ -1642,12 +1642,16 @@ const startPayment = async (planType) => {
   }
 
   try {
+    // 고유한 issueId 생성 (KG이니시스 V2 필수, ASCII만 허용)
+    const issueId = `issue-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+
     // 포트원 V2 SDK: 빌링키 발급 요청
     const issueResponse = await PortOne.requestIssueBillingKey({
       storeId: PORTONE_STORE_ID,
       channelKey: PORTONE_CHANNEL_KEY,
       billingKeyMethod: 'CARD',
-      issueName: `복서방 ${plan.name}`,
+      issueId: issueId,
+      issueName: `bokseobang ${planType}`,
       customer: {
         customerId: state.user.id,
         fullName: state.user.name,
