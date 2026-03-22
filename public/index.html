@@ -2581,8 +2581,8 @@ const continueWithEmail = async () => {
   const btn = document.getElementById('authBtn');
 
   if (!email || !pw) { errEl.textContent = '이메일(또는 아이디)과 비밀번호를 입력해주세요.'; errEl.classList.remove('hidden'); return; }
-  if (!isValidEmail(email) && !email.match(/^[a-zA-Z0-9_]+$/)) {
-    errEl.textContent = '올바른 이메일 또는 아이디를 입력해주세요.';
+  if (!isValidEmail(email) && email.includes(' ')) {
+    errEl.textContent = '아이디에 공백은 사용할 수 없습니다.';
     errEl.classList.remove('hidden'); return;
   }
 
