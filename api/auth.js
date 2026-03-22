@@ -82,9 +82,9 @@ export default async function handler(req, res) {
 
     // ====== 회원가입 ======
     if (action === 'register') {
-      const { id, password, name, email, organization } = req.body;
-      if (!id || !password || !name || !email) {
-        return res.status(400).json({ error: '아이디, 비밀번호, 이름, 이메일은 필수입니다.' });
+      const { id, password, name, email, phone, organization } = req.body;
+      if (!id || !password || !name || !email || !phone) {
+        return res.status(400).json({ error: '아이디, 비밀번호, 이름, 이메일, 휴대폰 번호는 필수입니다.' });
       }
 
       // 이메일 형식 검증
@@ -126,6 +126,7 @@ export default async function handler(req, res) {
         password: hashed,
         name,
         email,
+        phone: phone.replace(/-/g, ''),
         role: 'user',
         organization: organization || '',
         subscription_end
@@ -133,7 +134,7 @@ export default async function handler(req, res) {
 
       if (error) throw error;
 
-      const newUser = { id, name, email, role: 'user', organization: organization || '', subscription_end };
+      const newUser = { id, name, email, phone: phone.replace(/-/g, ''), role: 'user', organization: organization || '', subscription_end };
       const token = createToken(newUser);
       return res.status(201).json({ token, user: newUser });
     }

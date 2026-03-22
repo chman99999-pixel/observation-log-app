@@ -615,6 +615,10 @@ const renderAuthPage = () => {
               <input id="regEmail" type="email" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="example@email.com"/>
             </div>
             <div>
+              <label class="block text-sm font-medium mb-1 text-gray-700">휴대폰 번호 <span class="text-red-500">*</span></label>
+              <input id="regPhone" type="tel" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="01012345678" maxlength="11"/>
+            </div>
+            <div>
               <label class="block text-sm font-medium mb-1 text-gray-700">소속기관 <span class="text-gray-400 font-normal">(선택)</span></label>
               <input id="regOrg" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="소속기관명"/>
             </div>
@@ -1867,11 +1871,12 @@ const register = async () => {
   const pw = document.getElementById('regPw').value;
   const name = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim().replace(/-/g, '');
   const org = document.getElementById('regOrg').value.trim();
   const errEl = document.getElementById('regErr');
 
-  if (!id || !pw || !name || !email) {
-    errEl.textContent = '아이디, 비밀번호, 이름, 이메일은 필수입니다.';
+  if (!id || !pw || !name || !email || !phone) {
+    errEl.textContent = '아이디, 비밀번호, 이름, 이메일, 휴대폰 번호는 필수입니다.';
     errEl.classList.remove('hidden');
     return;
   }
@@ -1882,11 +1887,17 @@ const register = async () => {
     return;
   }
 
+  if (!/^01[0-9]{8,9}$/.test(phone)) {
+    errEl.textContent = '올바른 휴대폰 번호를 입력해주세요. (예: 01012345678)';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
   try {
     const res = await fetch('/api/auth?action=register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, password: pw, name, email, organization: org })
+      body: JSON.stringify({ id, password: pw, name, email, phone, organization: org })
     });
     const data = await res.json();
 
