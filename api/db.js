@@ -96,8 +96,8 @@ export default async function handler(req, res) {
           user_id,
           plan_id: status === 'trial' ? null : 'monthly',
           status,
-          current_period_start: now.toISOString().split('T')[0],
-          current_period_end: endDate.toISOString().split('T')[0],
+          start_date: now.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0],
         }]);
         if (error) throw error;
 

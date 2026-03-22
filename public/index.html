@@ -1466,7 +1466,7 @@ const getSubLabel = (u) => {
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
 
   if (userSub) {
-    const end = userSub.current_period_end ? new Date(userSub.current_period_end) : null;
+    const end = userSub.end_date ? new Date(userSub.end_date) : null;
     const days = end ? Math.ceil((end - new Date()) / 86400000) : 0;
     const statusMap = {
       'active': { text: '구독중', cls: 'bg-green-100 text-green-700' },

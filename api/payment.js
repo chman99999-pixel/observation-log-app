@@ -82,8 +82,8 @@ export default async function handler(req, res) {
         user_id: user.id,
         plan_id: plan.id,
         status: 'active',
-        current_period_start: now.toISOString().split('T')[0],
-        current_period_end: subscriptionEnd,
+        start_date: now.toISOString().split('T')[0],
+        end_date: subscriptionEnd,
       }]);
 
       if (subError) throw subError;
@@ -178,7 +178,7 @@ export default async function handler(req, res) {
       return res.status(200).json({
         success: true,
         message: '구독이 해지되었습니다. 만료일까지 서비스를 이용할 수 있습니다.',
-        subscription_end: subscription.current_period_end,
+        subscription_end: subscription.end_date,
       });
     }
 
