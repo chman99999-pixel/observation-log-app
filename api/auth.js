@@ -313,7 +313,7 @@ export default async function handler(req, res) {
       // Resend로 이메일 발송
       const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
-        from: '복서방 <noreply@bokji-ai.co.kr>',
+        from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
         to: user.email,
         subject: '[복서방] 비밀번호 재설정 안내',
         html: `
