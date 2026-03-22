@@ -6,6 +6,8 @@
   <title>복지인 서류해방</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes pulse-fade { 0%,100% { opacity:.4; transform:scale(.85); } 50% { opacity:1; transform:scale(1); } }
@@ -74,7 +76,7 @@ let state = {
   adminStats: null
 };
 
-let authToken = sessionStorage.getItem('authToken') || null;
+let authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || null;
 
 const api = async (action, body = null) => {
   const headers = { 'Content-Type': 'application/json' };
@@ -104,6 +106,10 @@ const loadData = async () => {
     if (cfg.portone) {
       PORTONE_STORE_ID = cfg.portone.storeId || '';
       PORTONE_CHANNEL_KEY = cfg.portone.channelKey || '';
+    }
+    // 카카오 SDK 초기화
+    if (cfg.kakaoJsKey && window.Kakao && !Kakao.isInitialized()) {
+      Kakao.init(cfg.kakaoJsKey);
     }
     const aiModelSetting = settings.find(s => s.key === 'ai_model');
     if (aiModelSetting) state.aiModel = aiModelSetting.value;
@@ -266,7 +272,7 @@ const renderLanding = () => {
           </div>
           <div class="flex items-center gap-2 sm:gap-3">
             <button onclick="state.page='login';render()" class="px-4 sm:px-5 py-2 text-sm sm:text-base font-semibold text-indigo-600 border-2 border-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all">로그인</button>
-            <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="px-3 sm:px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm sm:text-base font-semibold rounded-xl transition-all shadow-md shadow-indigo-500/20 whitespace-nowrap">무료 시작</button>
+            <button onclick="state.page='login';render()" class="px-3 sm:px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm sm:text-base font-semibold rounded-xl transition-all shadow-md shadow-indigo-500/20 whitespace-nowrap">무료 시작</button>
           </div>
         </div>
       </nav>
@@ -290,7 +296,7 @@ const renderLanding = () => {
           </p>
           <!-- CTA 버튼 -->
           <div class="flex flex-col sm:flex-row gap-4 justify-center items-center land-fadeUp land-delay-2 mb-10">
-          <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-2xl transition-all shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/35 hover:-translate-y-0.5 relative overflow-hidden">
+          <button onclick="state.page='login';render()" class="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-2xl transition-all shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/35 hover:-translate-y-0.5 relative overflow-hidden">
             <span class="relative z-10">10일 무료체험 시작하기</span>
             <div class="absolute inset-0 land-shimmer"></div>
           </button>
@@ -505,7 +511,7 @@ const renderLanding = () => {
                   <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 기록지·계획서 자동화</li>
                   <li class="flex items-center gap-2"><span class="text-green-500">✓</span> ${plan.interval === 'year' ? '연간 결제로 12,000원 절약' : '월 단위 자유롭게 해지 가능'}</li>
                 </ul>
-                <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="w-full py-3 ${plan.is_popular ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-500/20' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} rounded-xl font-semibold transition-all">시작하기</button>
+                <button onclick="state.page='login';render()" class="w-full py-3 ${plan.is_popular ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-500/20' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} rounded-xl font-semibold transition-all">시작하기</button>
               </div>
             `).join('')}
           </div>
@@ -531,7 +537,7 @@ const renderLanding = () => {
           </h2>
           <p class="text-xl sm:text-2xl text-yellow-200 font-medium mb-3">서류는 복서방이, 선생님은 이용자에게</p>
           <p class="text-lg text-indigo-100 mb-8">10일 무료체험 · 카드정보 불필요 · 1분이면 가입 완료</p>
-          <button onclick="state.page='login';render();setTimeout(()=>showRegisterForm(),50)" class="group px-10 py-4 bg-white hover:bg-gray-50 text-indigo-700 font-bold text-lg rounded-2xl transition-all shadow-xl hover:-translate-y-0.5">
+          <button onclick="state.page='login';render()" class="group px-10 py-4 bg-white hover:bg-gray-50 text-indigo-700 font-bold text-lg rounded-2xl transition-all shadow-xl hover:-translate-y-0.5">
             무료체험 시작하기 →
           </button>
         </div>
@@ -558,7 +564,7 @@ const renderLanding = () => {
 // ===== 로그인/회원가입 페이지 =====
 const renderAuthPage = () => {
   document.getElementById('app').innerHTML = `
-    <div class="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-gray-50 to-gray-100">
       <div class="w-full max-w-md">
         <!-- 뒤로가기 -->
         <button onclick="state.page='landing';render()" class="flex items-center gap-1 text-sm text-gray-500 hover:text-indigo-700 mb-6 transition-colors">
@@ -567,62 +573,78 @@ const renderAuthPage = () => {
 
         <div class="bg-white rounded-2xl shadow-xl p-8">
           <!-- 로고 -->
-          <div class="text-center mb-6">
-            <img src="/images/logo_home.jpg" alt="복지인 서류해방" class="w-48 mx-auto drop-shadow-sm land-scaleIn">
+          <div class="text-center mb-4">
+            <img src="/images/logo_home.jpg" alt="복지인 서류해방" class="w-44 mx-auto drop-shadow-sm land-scaleIn">
           </div>
 
-          <!-- 3개 앱 아이콘 -->
-          <div class="flex justify-center gap-4 mb-7">
-            <img src="/images/logo_ilgi.jpg" class="w-[80px] h-[80px] rounded-full object-cover shadow-sm land-scaleIn land-delay-1">
-            <img src="/images/logo_girokgi.jpg" class="w-[80px] h-[80px] rounded-full object-cover shadow-sm land-scaleIn land-delay-2">
-            <img src="/images/logo_plan.jpg" class="w-[80px] h-[80px] rounded-full object-cover shadow-sm land-scaleIn land-delay-3">
+          <!-- 타이틀 -->
+          <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">로그인 / 회원가입</h1>
+          <p class="text-center text-gray-500 text-sm mb-6">복지인 서류해방에서 업무 부담을 줄여보세요</p>
+
+          <!-- 소셜 로그인 버튼 -->
+          <div class="space-y-3 mb-5">
+            <button onclick="loginWithKakao()" class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl font-semibold text-base transition-all border border-gray-200" style="background:#FEE500;color:#191919;">
+              <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2C5.03 2 1 5.13 1 8.97c0 2.48 1.64 4.66 4.1 5.88-.12.46-.8 2.96-.83 3.15 0 0-.02.15.08.21.1.05.21.02.21.02.28-.04 3.24-2.13 3.75-2.49.55.08 1.12.12 1.69.12 4.97 0 9-3.13 9-6.97S14.97 2 10 2z" fill="#191919"/></svg>
+              카카오로 계속하기
+            </button>
+            <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl font-semibold text-base text-gray-700 transition-all">
+              <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              구글로 계속하기
+            </button>
           </div>
 
-          <!-- 로그인 폼 -->
-          <form id="loginForm" class="space-y-3 land-fadeUp" onsubmit="event.preventDefault();login();">
+          <!-- 구분선 -->
+          <div class="flex items-center gap-3 mb-5">
+            <div class="flex-1 h-px bg-gray-200"></div>
+            <span class="text-sm text-gray-400">또는</span>
+            <div class="flex-1 h-px bg-gray-200"></div>
+          </div>
+
+          <!-- 이메일/비밀번호 폼 -->
+          <form id="authForm" class="space-y-3" onsubmit="event.preventDefault();continueWithEmail();">
             <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">아이디</label>
-              <input id="loginId" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="아이디를 입력하세요"/>
+              <label class="block text-sm font-semibold mb-1 text-gray-700">이메일</label>
+              <input id="authEmail" type="email" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 text-base transition-all" placeholder="이메일 주소"/>
             </div>
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">비밀번호</label>
-              <input id="loginPw" type="password" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="비밀번호를 입력하세요"/>
+            <div class="relative">
+              <label class="block text-sm font-semibold mb-1 text-gray-700">비밀번호</label>
+              <input id="authPw" type="password" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 text-base transition-all pr-12" placeholder="비밀번호"/>
+              <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-9 text-gray-400 hover:text-gray-600">
+                <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
             </div>
-            <p id="loginErr" class="text-red-500 text-sm hidden">아이디 또는 비밀번호가 올바르지 않습니다.</p>
-            <button id="loginBtn" type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3 rounded-xl mt-1 transition-colors">로그인</button>
-            <p class="text-center text-sm text-gray-500 mt-2">계정이 없으신가요? <button type="button" onclick="showRegisterForm()" class="text-indigo-600 hover:text-indigo-800 font-medium">회원가입</button></p>
+
+            <!-- 회원가입 추가 필드 (기본 숨김) -->
+            <div id="regFields" class="space-y-3 hidden">
+              <div>
+                <label class="block text-sm font-semibold mb-1 text-gray-700">이름 <span class="text-red-500">*</span></label>
+                <input id="regName" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 text-base transition-all" placeholder="이름을 입력하세요"/>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold mb-1 text-gray-700">휴대폰 번호 <span class="text-red-500">*</span></label>
+                <input id="regPhone" type="tel" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 text-base transition-all" placeholder="01012345678" maxlength="11"/>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold mb-1 text-gray-700">소속기관 <span class="text-gray-400 font-normal">(선택)</span></label>
+                <input id="regOrg" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 text-base transition-all" placeholder="소속기관명"/>
+              </div>
+            </div>
+
+            <!-- 로그인 상태 유지 -->
+            <label class="flex items-center gap-2 cursor-pointer py-1">
+              <input id="rememberMe" type="checkbox" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+              <span class="text-sm text-gray-600">로그인 상태 유지</span>
+            </label>
+
+            <p id="authErr" class="text-red-500 text-sm hidden"></p>
+
+            <button id="authBtn" type="submit" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-semibold py-3 rounded-xl transition-colors text-base">계속하기</button>
           </form>
 
-          <!-- 회원가입 폼 (숨김) -->
-          <div id="registerForm" class="space-y-3 hidden">
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">아이디 <span class="text-red-500">*</span></label>
-              <input id="regId" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="아이디를 입력하세요"/>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">비밀번호 <span class="text-red-500">*</span></label>
-              <input id="regPw" type="password" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="비밀번호를 입력하세요"/>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">이름 <span class="text-red-500">*</span></label>
-              <input id="regName" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="이름을 입력하세요"/>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">이메일 <span class="text-red-500">*</span></label>
-              <input id="regEmail" type="email" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="example@email.com"/>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">휴대폰 번호 <span class="text-red-500">*</span></label>
-              <input id="regPhone" type="tel" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="01012345678" maxlength="11"/>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1 text-gray-700">소속기관 <span class="text-gray-400 font-normal">(선택)</span></label>
-              <input id="regOrg" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all" placeholder="소속기관명"/>
-            </div>
-            <p id="regErr" class="text-red-500 text-sm hidden"></p>
-            <button onclick="register()" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-3 rounded-xl mt-1 transition-colors">회원가입 (10일 무료체험)</button>
-            <p class="text-center text-sm text-gray-500 mt-2">이미 계정이 있으신가요? <button onclick="showLoginForm()" class="text-indigo-600 hover:text-indigo-800 font-medium">로그인</button></p>
-          </div>
+          <!-- 비밀번호 찾기 -->
+          <p class="text-center mt-4">
+            <button onclick="alert('비밀번호 초기화가 필요하시면 관리자에게 문의해주세요.\\n\\n📞 070-8065-0429')" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">비밀번호를 잊으셨나요?</button>
+          </p>
         </div>
 
         <div class="text-center text-xs text-gray-400 mt-6 space-y-1">
@@ -998,6 +1020,17 @@ const renderMyPage = () => {
 
       <div class="max-w-2xl mx-auto px-4 py-8 space-y-6">
 
+        ${!state.user.phone ? `
+        <!-- 프로필 보완 안내 -->
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
+          <span class="text-2xl">📱</span>
+          <div>
+            <p class="font-semibold text-amber-800">전화번호를 입력해주세요</p>
+            <p class="text-sm text-amber-600">아래 개인정보 수정에서 전화번호를 등록하시면 더 원활한 서비스를 이용할 수 있습니다.</p>
+          </div>
+        </div>
+        ` : ''}
+
         <!-- 섹션 A: 내 구독 정보 -->
         <div class="bg-white rounded-2xl shadow-md overflow-hidden">
           <div class="bg-gradient-to-r from-indigo-500 to-blue-500 px-6 py-4">
@@ -1063,6 +1096,13 @@ const renderMyPage = () => {
           </div>
         </div>
 
+        ${state.user.provider ? `
+        <!-- 소셜 로그인 정보 -->
+        <div class="bg-white rounded-2xl shadow-md p-6">
+          <p class="text-base text-gray-600">🔗 로그인 방법: <span class="font-bold">${state.user.provider === 'kakao' ? '카카오' : state.user.provider === 'google' ? 'Google' : state.user.provider}</span></p>
+          <p class="text-sm text-gray-400 mt-1">소셜 로그인 사용자는 비밀번호가 없습니다.</p>
+        </div>
+        ` : `
         <!-- 섹션 D: 비밀번호 변경 -->
         <div class="bg-white rounded-2xl shadow-md overflow-hidden">
           <div class="px-6 py-4 border-b cursor-pointer flex justify-between items-center" onclick="document.getElementById('pwSection').classList.toggle('hidden')">
@@ -1085,6 +1125,7 @@ const renderMyPage = () => {
             <button onclick="changePassword()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-base transition-colors">🔑 비밀번호 변경</button>
           </div>
         </div>
+        `}
 
         ${subDaysLeft !== null && subDaysLeft > 0 ? `
         <!-- 섹션 E: 구독 해지 -->
@@ -2514,29 +2555,106 @@ const showSubscriptionAlert = (daysLeft, subscriptionEnd) => {
 
 // ============ API 호출 함수들 ============
 
-const login = async () => {
-  const id = document.getElementById('loginId').value;
-  const pw = document.getElementById('loginPw').value;
-  const errEl = document.getElementById('loginErr');
-  const btn = document.getElementById('loginBtn');
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  if (!id || !pw) { errEl.classList.remove('hidden'); return; }
+const saveAuthToken = (token) => {
+  authToken = token;
+  const remember = document.getElementById('rememberMe')?.checked;
+  if (remember) {
+    localStorage.setItem('authToken', token);
+  } else {
+    sessionStorage.setItem('authToken', token);
+  }
+};
 
-  // 로그인 중 버튼 상태 변경
-  btn.disabled = true;
-  btn.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>로그인 중...</span>';
-  btn.classList.add('opacity-80', 'cursor-not-allowed');
+const togglePasswordVisibility = () => {
+  const pwInput = document.getElementById('authPw');
+  if (pwInput.type === 'password') { pwInput.type = 'text'; } else { pwInput.type = 'password'; }
+};
+
+let isRegisterMode = false;
+
+const continueWithEmail = async () => {
+  const email = document.getElementById('authEmail').value.trim();
+  const pw = document.getElementById('authPw').value;
+  const errEl = document.getElementById('authErr');
+  const btn = document.getElementById('authBtn');
+
+  if (!email || !pw) { errEl.textContent = '이메일과 비밀번호를 입력해주세요.'; errEl.classList.remove('hidden'); return; }
+  if (!isValidEmail(email) && !email.match(/^[a-zA-Z0-9_]+$/)) {
+    errEl.textContent = '올바른 이메일 또는 아이디를 입력해주세요.';
+    errEl.classList.remove('hidden'); return;
+  }
+
   errEl.classList.add('hidden');
 
+  // 회원가입 모드 → register 호출
+  if (isRegisterMode) {
+    const name = document.getElementById('regName').value.trim();
+    const phone = document.getElementById('regPhone').value.trim().replace(/-/g, '');
+    const org = document.getElementById('regOrg').value.trim();
+
+    if (!name || !phone) {
+      errEl.textContent = '이름과 휴대폰 번호는 필수입니다.';
+      errEl.classList.remove('hidden'); return;
+    }
+    if (!/^01[0-9]{8,9}$/.test(phone)) {
+      errEl.textContent = '올바른 휴대폰 번호를 입력해주세요. (예: 01012345678)';
+      errEl.classList.remove('hidden'); return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>가입 중...</span>';
+
+    try {
+      const res = await fetch('/api/auth?action=register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: email, password: pw, name, email, phone, organization: org })
+      });
+      const data = await res.json();
+      if (!res.ok) { errEl.textContent = data.error || '회원가입에 실패했습니다.'; errEl.classList.remove('hidden'); btn.disabled = false; btn.textContent = '회원가입 (10일 무료체험)'; return; }
+
+      saveAuthToken(data.token);
+      state.user = data.user;
+      state.users.push(data.user);
+      state.page = 'app';
+      state.tab = 'hub';
+      isRegisterMode = false;
+      render();
+    } catch (e) {
+      console.error('Register error:', e);
+      errEl.textContent = '서버 연결에 실패했습니다.';
+      errEl.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = '회원가입 (10일 무료체험)';
+    }
+    return;
+  }
+
+  // 로그인 모드 → continueWithEmail 호출
+  btn.disabled = true;
+  btn.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>확인 중...</span>';
+
   try {
-    const res = await fetch('/api/auth?action=login', {
+    const res = await fetch('/api/auth?action=continueWithEmail', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, password: pw })
+      body: JSON.stringify({ email, password: pw })
     });
     const data = await res.json();
 
-    const resetBtn = () => { btn.disabled = false; btn.textContent = '로그인'; btn.classList.remove('opacity-80', 'cursor-not-allowed'); };
+    const resetBtn = () => { btn.disabled = false; btn.textContent = '계속하기'; btn.classList.remove('opacity-80'); };
+
+    if (data.newUser) {
+      // 신규 사용자 → 추가 필드 표시
+      isRegisterMode = true;
+      document.getElementById('regFields').classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = '회원가입 (10일 무료체험)';
+      btn.classList.replace('bg-gray-800', 'bg-green-600');
+      btn.classList.replace('hover:bg-gray-900', 'hover:bg-green-700');
+      return;
+    }
 
     if (!res.ok) {
       resetBtn();
@@ -2544,99 +2662,111 @@ const login = async () => {
         alert('😢 구독이 만료되었습니다.\n\n구독 연장을 원하시면 관리자에게 문의해주세요.');
         return;
       }
+      errEl.textContent = data.error || '로그인에 실패했습니다.';
       errEl.classList.remove('hidden');
       return;
     }
 
-    authToken = data.token;
-    sessionStorage.setItem('authToken', authToken);
+    // 로그인 성공
+    saveAuthToken(data.token);
     state.user = data.user;
     state.page = 'app';
     state.tab = 'hub';
     render();
 
-    // 구독 만료 3일 전부터 알림 팝업
     const daysLeft = getSubscriptionDaysLeft(data.user);
     if (daysLeft !== null && daysLeft <= 3) {
       setTimeout(() => showSubscriptionAlert(daysLeft, data.user.subscription_end), 300);
     }
   } catch (e) {
     console.error('Login error:', e);
-    btn.disabled = false; btn.textContent = '로그인'; btn.classList.remove('opacity-80', 'cursor-not-allowed');
-    errEl.classList.remove('hidden');
-  }
-};
-
-const showRegisterForm = () => {
-  document.getElementById('loginForm').classList.add('hidden');
-  document.getElementById('registerForm').classList.remove('hidden');
-};
-
-const showLoginForm = () => {
-  document.getElementById('registerForm').classList.add('hidden');
-  document.getElementById('loginForm').classList.remove('hidden');
-};
-
-const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-const register = async () => {
-  const id = document.getElementById('regId').value.trim();
-  const pw = document.getElementById('regPw').value;
-  const name = document.getElementById('regName').value.trim();
-  const email = document.getElementById('regEmail').value.trim();
-  const phone = document.getElementById('regPhone').value.trim().replace(/-/g, '');
-  const org = document.getElementById('regOrg').value.trim();
-  const errEl = document.getElementById('regErr');
-
-  if (!id || !pw || !name || !email || !phone) {
-    errEl.textContent = '아이디, 비밀번호, 이름, 이메일, 휴대폰 번호는 필수입니다.';
-    errEl.classList.remove('hidden');
-    return;
-  }
-
-  if (!isValidEmail(email)) {
-    errEl.textContent = '올바른 이메일 형식을 입력해주세요. (예: name@email.com)';
-    errEl.classList.remove('hidden');
-    return;
-  }
-
-  if (!/^01[0-9]{8,9}$/.test(phone)) {
-    errEl.textContent = '올바른 휴대폰 번호를 입력해주세요. (예: 01012345678)';
-    errEl.classList.remove('hidden');
-    return;
-  }
-
-  try {
-    const res = await fetch('/api/auth?action=register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, password: pw, name, email, phone, organization: org })
-    });
-    const data = await res.json();
-
-    if (!res.ok) {
-      errEl.textContent = data.error || '회원가입에 실패했습니다.';
-      errEl.classList.remove('hidden');
-      return;
-    }
-
-    authToken = data.token;
-    sessionStorage.setItem('authToken', authToken);
-    state.user = data.user;
-    state.users.push(data.user);
-    state.page = 'app';
-    state.tab = 'hub';
-    render();
-  } catch (e) {
-    console.error('Register error:', e);
+    btn.disabled = false; btn.textContent = '계속하기';
     errEl.textContent = '서버 연결에 실패했습니다.';
     errEl.classList.remove('hidden');
   }
 };
 
+// 레거시 호환 (랜딩 페이지에서 showRegisterForm 호출)
+const showRegisterForm = () => {
+  state.page = 'login';
+  render();
+};
+
+const showLoginForm = () => {
+  isRegisterMode = false;
+  state.page = 'login';
+  render();
+};
+
+// ============ 소셜 로그인 ============
+
+const loginWithKakao = () => {
+  if (!window.Kakao || !Kakao.isInitialized()) {
+    alert('카카오 로그인 준비 중입니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+  Kakao.Auth.login({
+    success: (authObj) => {
+      Kakao.API.request({
+        url: '/v2/user/me',
+        success: async (kakaoUser) => {
+          const email = kakaoUser.kakao_account?.email || null;
+          const name = kakaoUser.kakao_account?.profile?.nickname || '사용자';
+          const providerId = String(kakaoUser.id);
+          try {
+            const res = await fetch('/api/auth?action=socialLogin', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ provider: 'kakao', providerId, email, name })
+            });
+            const data = await res.json();
+            if (!res.ok) { alert(data.error || '카카오 로그인에 실패했습니다.'); return; }
+            saveAuthToken(data.token);
+            state.user = data.user;
+            state.page = 'app';
+            state.tab = 'hub';
+            render();
+          } catch (e) { alert('서버 연결에 실패했습니다.'); }
+        },
+        fail: (err) => { console.error('Kakao user info error:', err); alert('카카오 사용자 정보를 가져올 수 없습니다.'); }
+      });
+    },
+    fail: (err) => { console.error('Kakao login failed:', err); }
+  });
+};
+
+const loginWithGoogle = () => {
+  if (!window.google || !state.appConfig?.googleClientId) {
+    alert('구글 로그인 준비 중입니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: state.appConfig.googleClientId,
+    callback: async (response) => {
+      try {
+        const payload = JSON.parse(atob(response.credential.split('.')[1]));
+        const res = await fetch('/api/auth?action=socialLogin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider: 'google', providerId: payload.sub, email: payload.email, name: payload.name })
+        });
+        const data = await res.json();
+        if (!res.ok) { alert(data.error || '구글 로그인에 실패했습니다.'); return; }
+        saveAuthToken(data.token);
+        state.user = data.user;
+        state.page = 'app';
+        state.tab = 'hub';
+        render();
+      } catch (e) { alert('서버 연결에 실패했습니다.'); }
+    }
+  });
+  google.accounts.id.prompt();
+};
+
 const logout = () => {
   authToken = null;
   sessionStorage.removeItem('authToken');
+  localStorage.removeItem('authToken');
   state.user = null;
   state.page = 'landing';
   state.tab = 'dashboard';
@@ -3044,10 +3174,12 @@ const restoreSession = async () => {
     } else {
       authToken = null;
       sessionStorage.removeItem('authToken');
+      localStorage.removeItem('authToken');
     }
   } catch {
     authToken = null;
     sessionStorage.removeItem('authToken');
+    localStorage.removeItem('authToken');
   }
 };
 

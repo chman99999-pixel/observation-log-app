@@ -80,6 +80,129 @@ export default async function handler(req, res) {
       return res.status(200).json({ user: sanitizeUser(user) });
     }
 
+    // ====== 이메일 기반 통합 로그인/회원가입 ======
+    if (action === 'continueWithEmail') {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: '이메일과 비밀번호를 입력해주세요.' });
+      }
+
+      // email 컬럼 또는 id 컬럼(레거시)으로 사용자 검색
+      let user = null;
+      const { data: byEmail } = await supabase
+        .from('users').select('*').eq('email', email).single();
+      if (byEmail) {
+        user = byEmail;
+      } else {
+        const { data: byId } = await supabase
+          .from('users').select('*').eq('id', email).single();
+        if (byId) user = byId;
+      }
+
+      // 신규 사용자
+      if (!user) {
+        return res.status(200).json({ newUser: true });
+      }
+
+      // 소셜 로그인 사용자 (비밀번호 없음)
+      if (!user.password) {
+        const providerName = user.provider === 'kakao' ? '카카오' : user.provider === 'google' ? 'Google' : '소셜';
+        return res.status(400).json({ error: `${providerName} 로그인으로 등록된 계정입니다. ${providerName}로 로그인해주세요.` });
+      }
+
+      // 비밀번호 검증
+      if (!verifyPassword(password, user.password)) {
+        return res.status(401).json({ error: '비밀번호가 올바르지 않습니다.' });
+      }
+
+      // 레거시 평문 → bcrypt 자동 업그레이드
+      if (!isHashed(user.password)) {
+        const hashed = hashPassword(password);
+        await supabase.from('users').update({ password: hashed }).eq('id', user.id);
+      }
+
+      // 구독 만료 체크 (관리자 제외)
+      if (user.role !== 'admin' && user.subscription_end) {
+        const expireDate = new Date(user.subscription_end);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (expireDate < today) {
+          return res.status(403).json({ error: 'subscription_expired', subscription_end: user.subscription_end });
+        }
+      }
+
+      const token = createToken(user);
+      return res.status(200).json({ token, user: sanitizeUser(user) });
+    }
+
+    // ====== 소셜 로그인 (카카오/구글) ======
+    if (action === 'socialLogin') {
+      const { provider, providerId, email, name } = req.body;
+      if (!provider || !providerId) {
+        return res.status(400).json({ error: '소셜 로그인 정보가 부족합니다.' });
+      }
+
+      // 1. provider + provider_id로 기존 사용자 검색
+      const { data: byProvider } = await supabase
+        .from('users').select('*')
+        .eq('provider', provider).eq('provider_id', providerId).single();
+
+      if (byProvider) {
+        const token = createToken(byProvider);
+        return res.status(200).json({ token, user: sanitizeUser(byProvider) });
+      }
+
+      // 2. email로 기존 사용자 검색 → 계정 연결
+      if (email) {
+        const { data: byEmail } = await supabase
+          .from('users').select('*').eq('email', email).single();
+
+        if (byEmail) {
+          await supabase.from('users')
+            .update({ provider, provider_id: providerId })
+            .eq('id', byEmail.id);
+          byEmail.provider = provider;
+          byEmail.provider_id = providerId;
+          const token = createToken(byEmail);
+          return res.status(200).json({ token, user: sanitizeUser(byEmail) });
+        }
+      }
+
+      // 3. 신규 사용자 → 자동 회원가입
+      const userId = email || `${provider}_${providerId}`;
+      const trialEnd = new Date();
+      trialEnd.setDate(trialEnd.getDate() + 10);
+      const subscription_end = trialEnd.toISOString().split('T')[0];
+
+      const newUser = {
+        id: userId,
+        password: null,
+        name: name || '사용자',
+        email: email || null,
+        phone: null,
+        role: 'user',
+        organization: '',
+        subscription_end,
+        provider,
+        provider_id: providerId
+      };
+
+      const { error: insertErr } = await supabase.from('users').insert([newUser]);
+      if (insertErr) throw insertErr;
+
+      // 체험 구독 생성
+      await supabase.from('subscriptions').insert([{
+        user_id: userId,
+        plan_id: null,
+        status: 'trial',
+        start_date: new Date().toISOString().split('T')[0],
+        end_date: subscription_end
+      }]);
+
+      const token = createToken(newUser);
+      return res.status(201).json({ token, user: sanitizeUser(newUser) });
+    }
+
     // ====== 회원가입 ======
     if (action === 'register') {
       const { id, password, name, email, phone, organization } = req.body;

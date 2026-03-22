@@ -23,7 +23,7 @@ export function isHashed(password) {
 
 export function createToken(user) {
   return jwt.sign(
-    { id: user.id, name: user.name, role: user.role, organization: user.organization },
+    { id: user.id, name: user.name, role: user.role, organization: user.organization, provider: user.provider || null },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
   );
