@@ -1,5 +1,5 @@
 import supabase from './_utils/supabase.js';
-import { hashPassword, authenticateRequest } from './_utils/auth.js';
+import { hashPassword, verifyPassword, authenticateRequest } from './_utils/auth.js';
 
 export default async function handler(req, res) {
   const { action } = req.query;
@@ -42,6 +42,62 @@ export default async function handler(req, res) {
       if (phone !== undefined) updateData.phone = phone;
 
       const { error } = await supabase.from('users').update(updateData).eq('id', id);
+      if (error) throw error;
+      return res.status(200).json({ success: true });
+    }
+
+    // 개인정보 수정 (본인 전용 - JWT 인증)
+    if (action === 'updateProfile') {
+      const user = authenticateRequest(req);
+      if (!user) return res.status(401).json({ error: '인증이 필요합니다.' });
+
+      const { name, email, phone, organization, currentPassword, newPassword } = req.body;
+      const updateData = {};
+
+      // 비밀번호 변경
+      if (newPassword) {
+        if (!currentPassword) {
+          return res.status(400).json({ error: '현재 비밀번호를 입력해주세요.' });
+        }
+        // DB에서 현재 비밀번호 해시 조회
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('password')
+          .eq('id', user.id)
+          .single();
+        if (userError || !userData) {
+          return res.status(400).json({ error: '사용자를 찾을 수 없습니다.' });
+        }
+        if (!verifyPassword(currentPassword, userData.password)) {
+          return res.status(400).json({ error: '현재 비밀번호가 올바르지 않습니다.' });
+        }
+        updateData.password = hashPassword(newPassword);
+      }
+
+      // 개인정보 업데이트
+      if (name) updateData.name = name;
+      if (email !== undefined) {
+        // 이메일 중복 체크
+        if (email) {
+          const { data: existing } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', email)
+            .neq('id', user.id);
+          if (existing && existing.length > 0) {
+            return res.status(400).json({ error: '이미 사용 중인 이메일입니다.' });
+          }
+        }
+        updateData.email = email || null;
+      }
+      if (phone !== undefined) updateData.phone = phone || null;
+      if (organization !== undefined) updateData.organization = organization;
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ error: '변경할 항목이 없습니다.' });
+      }
+
+      const { error } = await supabase.from('users').update(updateData).eq('id', user.id);
       if (error) throw error;
       return res.status(200).json({ success: true });
     }
