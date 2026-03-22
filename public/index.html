@@ -2735,51 +2735,60 @@ const loginWithKakao = () => {
   });
 };
 
-// 구글 로그인 콜백 (initialize 시 등록)
-const _handleGoogleCredential = async (response) => {
-  try {
-    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-    const res = await fetch('/api/auth?action=socialLogin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ provider: 'google', providerId: payload.sub, email: payload.email, name: payload.name })
-    });
-    const data = await res.json();
-    if (!res.ok) { alert(data.error || '구글 로그인에 실패했습니다.'); return; }
-    saveAuthToken(data.token);
-    state.user = data.user;
-    state.page = 'app';
-    state.tab = 'hub';
-    render();
-  } catch (e) { alert('서버 연결에 실패했습니다.'); }
-};
-
-let _googleInitialized = false;
-const _initGoogleOnce = () => {
-  if (_googleInitialized || !window.google?.accounts?.id || !state.appConfig?.googleClientId) return false;
-  google.accounts.id.initialize({
-    client_id: state.appConfig.googleClientId,
-    callback: _handleGoogleCredential,
-    use_fedcm_for_prompt: false,       // FedCM 비활성화 → 기존 팝업 방식 사용
-  });
-  _googleInitialized = true;
-  return true;
-};
+// 구글 로그인 - OAuth 2.0 Token Client (팝업 방식)
+let _googleTokenClient = null;
 
 const loginWithGoogle = () => {
-  if (!window.google?.accounts?.id || !state.appConfig?.googleClientId) {
+  const clientId = state.appConfig?.googleClientId;
+  if (!window.google?.accounts?.oauth2 || !clientId) {
     alert('구글 로그인 준비 중입니다. 잠시 후 다시 시도해주세요.');
     return;
   }
-  _initGoogleOnce();
-  google.accounts.id.prompt((notification) => {
-    // prompt가 실패한 경우 (쿨다운, 팝업차단 등) → renderButton 폴백 없이 안내
-    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-      const reason = notification.getNotDisplayedReason?.() || notification.getSkippedReason?.() || '';
-      console.warn('Google prompt 실패:', reason);
-      alert('구글 로그인 팝업이 차단되었습니다.\n브라우저 설정에서 팝업을 허용하거나,\n이메일/비밀번호로 로그인해주세요.');
-    }
-  });
+
+  if (!_googleTokenClient) {
+    _googleTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: 'openid email profile',
+      callback: async (tokenResponse) => {
+        if (tokenResponse.error) {
+          console.error('Google OAuth error:', tokenResponse);
+          alert('구글 로그인에 실패했습니다.');
+          return;
+        }
+        try {
+          // access_token으로 사용자 정보 조회
+          const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+          });
+          const userInfo = await userRes.json();
+          // 백엔드 소셜 로그인 호출
+          const res = await fetch('/api/auth?action=socialLogin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              provider: 'google',
+              providerId: userInfo.sub,
+              email: userInfo.email,
+              name: userInfo.name
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) { alert(data.error || '구글 로그인에 실패했습니다.'); return; }
+          saveAuthToken(data.token);
+          state.user = data.user;
+          state.page = 'app';
+          state.tab = 'hub';
+          render();
+        } catch (e) {
+          console.error('Google login error:', e);
+          alert('서버 연결에 실패했습니다.');
+        }
+      }
+    });
+  }
+
+  // 팝업 방식으로 OAuth 동의 화면 열기
+  _googleTokenClient.requestAccessToken();
 };
 
 const logout = () => {
