@@ -2732,8 +2732,20 @@ const loginWithKakao = () => {
     alert('카카오 로그인 준비 중입니다. 잠시 후 다시 시도해주세요.');
     return;
   }
-  // 카카오 SDK가 자체적으로 팝업을 열므로 직접 호출만 하면 됨
+  // window.open을 일시적으로 오버라이드하여 팝업 크기 강제 지정
+  const originalOpen = window.open;
+  window.open = function(url, name, features) {
+    const w = 500, h = 600;
+    const left = (screen.width - w) / 2;
+    const top = (screen.height - h) / 2;
+    const newFeatures = `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`;
+    const result = originalOpen.call(window, url, name, newFeatures);
+    window.open = originalOpen; // 즉시 원복
+    return result;
+  };
+
   Kakao.Auth.login({
+    throughTalk: false, // 카카오톡 앱 연동 끄고 웹 팝업만 사용
     success: (authObj) => {
       Kakao.API.request({
         url: '/v2/user/me',
