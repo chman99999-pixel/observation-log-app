@@ -2700,11 +2700,43 @@ const showLoginForm = () => {
 
 // ============ 소셜 로그인 ============
 
+// 소셜 로그인 공통 - 팝업 윈도우 헬퍼
+const _openSocialPopup = (url, name = 'socialLogin') => {
+  const w = 500, h = 600;
+  const left = (screen.width - w) / 2;
+  const top = (screen.height - h) / 2;
+  return window.open(url, name, `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`);
+};
+
+// 소셜 로그인 공통 - 백엔드 호출 후 로그인 처리
+const _handleSocialLoginResult = async (provider, providerId, email, name) => {
+  try {
+    const res = await fetch('/api/auth?action=socialLogin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, providerId, email, name })
+    });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || `${provider} 로그인에 실패했습니다.`); return; }
+    saveAuthToken(data.token);
+    state.user = data.user;
+    state.page = 'app';
+    state.tab = 'hub';
+    render();
+  } catch (e) { alert('서버 연결에 실패했습니다.'); }
+};
+
+// ====== 카카오 로그인 (팝업) ======
 const loginWithKakao = () => {
   if (!window.Kakao || !Kakao.isInitialized()) {
     alert('카카오 로그인 준비 중입니다. 잠시 후 다시 시도해주세요.');
     return;
   }
+  // 팝업 윈도우를 먼저 열어서 팝업 차단 방지 (사용자 클릭 컨텍스트 유지)
+  const popup = _openSocialPopup('about:blank', 'kakaoLogin');
+  // 카카오 SDK는 내부적으로 팝업을 사용하므로, 미리 연 팝업을 닫고 SDK에 맡김
+  if (popup) popup.close();
+
   Kakao.Auth.login({
     success: (authObj) => {
       Kakao.API.request({
@@ -2713,20 +2745,7 @@ const loginWithKakao = () => {
           const email = kakaoUser.kakao_account?.email || null;
           const name = kakaoUser.kakao_account?.profile?.nickname || '사용자';
           const providerId = String(kakaoUser.id);
-          try {
-            const res = await fetch('/api/auth?action=socialLogin', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ provider: 'kakao', providerId, email, name })
-            });
-            const data = await res.json();
-            if (!res.ok) { alert(data.error || '카카오 로그인에 실패했습니다.'); return; }
-            saveAuthToken(data.token);
-            state.user = data.user;
-            state.page = 'app';
-            state.tab = 'hub';
-            render();
-          } catch (e) { alert('서버 연결에 실패했습니다.'); }
+          await _handleSocialLoginResult('kakao', providerId, email, name);
         },
         fail: (err) => { console.error('Kakao user info error:', err); alert('카카오 사용자 정보를 가져올 수 없습니다.'); }
       });
@@ -2735,9 +2754,7 @@ const loginWithKakao = () => {
   });
 };
 
-// 구글 로그인 - OAuth 2.0 Token Client (팝업 방식)
-let _googleTokenClient = null;
-
+// ====== 구글 로그인 (팝업) ======
 const loginWithGoogle = () => {
   const clientId = state.appConfig?.googleClientId;
   if (!window.google?.accounts?.oauth2 || !clientId) {
@@ -2745,50 +2762,54 @@ const loginWithGoogle = () => {
     return;
   }
 
-  if (!_googleTokenClient) {
-    _googleTokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: 'openid email profile',
-      callback: async (tokenResponse) => {
-        if (tokenResponse.error) {
-          console.error('Google OAuth error:', tokenResponse);
-          alert('구글 로그인에 실패했습니다.');
-          return;
-        }
-        try {
-          // access_token으로 사용자 정보 조회
-          const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-          });
-          const userInfo = await userRes.json();
-          // 백엔드 소셜 로그인 호출
-          const res = await fetch('/api/auth?action=socialLogin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              provider: 'google',
-              providerId: userInfo.sub,
-              email: userInfo.email,
-              name: userInfo.name
-            })
-          });
-          const data = await res.json();
-          if (!res.ok) { alert(data.error || '구글 로그인에 실패했습니다.'); return; }
-          saveAuthToken(data.token);
-          state.user = data.user;
-          state.page = 'app';
-          state.tab = 'hub';
-          render();
-        } catch (e) {
-          console.error('Google login error:', e);
-          alert('서버 연결에 실패했습니다.');
-        }
-      }
-    });
+  // 팝업 윈도우를 먼저 열어서 팝업 차단 방지
+  const popup = _openSocialPopup('about:blank', 'googleLogin');
+
+  // Google OAuth URL 직접 구성
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: window.location.origin,
+    response_type: 'token',
+    scope: 'openid email profile',
+    prompt: 'select_account',
+  });
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+
+  if (popup) {
+    popup.location.href = authUrl;
+  } else {
+    // 팝업 차단 시 새 탭으로 폴백
+    window.open(authUrl, '_blank');
   }
 
-  // 팝업 방식으로 OAuth 동의 화면 열기
-  _googleTokenClient.requestAccessToken();
+  // 팝업에서 리다이렉트 후 access_token을 수신하는 폴링
+  const pollTimer = setInterval(async () => {
+    try {
+      if (!popup || popup.closed) {
+        clearInterval(pollTimer);
+        return;
+      }
+      const popupUrl = popup.location.href;
+      if (popupUrl.startsWith(window.location.origin)) {
+        clearInterval(pollTimer);
+        // URL fragment에서 access_token 추출
+        const hash = popup.location.hash.substring(1);
+        popup.close();
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get('access_token');
+        if (!accessToken) return;
+
+        // 사용자 정보 조회
+        const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const userInfo = await userRes.json();
+        await _handleSocialLoginResult('google', userInfo.sub, userInfo.email, userInfo.name);
+      }
+    } catch (e) {
+      // cross-origin 접근 시 에러 무시 (아직 Google 도메인에 있음)
+    }
+  }, 500);
 };
 
 const logout = () => {
