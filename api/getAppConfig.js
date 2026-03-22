@@ -13,7 +13,7 @@ export default function handler(req, res) {
       storeId: process.env.PORTONE_STORE_ID || '',
       channelKey: process.env.PORTONE_CHANNEL_KEY || '',
     },
-    kakaoJsKey: process.env.KAKAO_JS_KEY || '',
-    googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+    kakaoJsKey: (process.env.KAKAO_JS_KEY || '').trim(),
+    googleClientId: (process.env.GOOGLE_CLIENT_ID || '').trim(),
   });
 }
