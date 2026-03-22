@@ -1615,7 +1615,7 @@ const startPayment = async (planType) => {
     btn.textContent = '결제 처리 중...';
   }
 
-  // 이메일 필수 체크 (KG이니시스 V2 빌링키 발급 시 필수)
+  // KG이니시스 V2 빌링키 발급 시 이메일 + 휴대폰 번호 필수
   let customerEmail = state.user.email;
   if (!customerEmail) {
     customerEmail = prompt('결제를 위해 이메일 주소를 입력해주세요.');
@@ -1624,6 +1624,17 @@ const startPayment = async (planType) => {
       if (btn) { btn.disabled = false; btn.textContent = planType === 'monthly' ? '월간 구독 시작' : '연간 구독 시작'; }
       return;
     }
+  }
+
+  let customerPhone = state.user.phone;
+  if (!customerPhone) {
+    customerPhone = prompt('결제를 위해 휴대폰 번호를 입력해주세요.\n예: 01012345678');
+    if (!customerPhone || !/^01[0-9]{8,9}$/.test(customerPhone.replace(/-/g, ''))) {
+      alert('올바른 휴대폰 번호를 입력해주세요. (예: 01012345678)');
+      if (btn) { btn.disabled = false; btn.textContent = planType === 'monthly' ? '월간 구독 시작' : '연간 구독 시작'; }
+      return;
+    }
+    customerPhone = customerPhone.replace(/-/g, '');
   }
 
   try {
@@ -1637,6 +1648,7 @@ const startPayment = async (planType) => {
         customerId: state.user.id,
         fullName: state.user.name,
         email: customerEmail,
+        phoneNumber: customerPhone,
       },
     });
 
