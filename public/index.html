@@ -1443,10 +1443,9 @@ const renderUser = () => {
           <div class="flex items-center gap-2 flex-col sm:flex-row"><span class="text-sm">${getGreeting()}</span>${subBadge}<div class="flex gap-1"><button onclick="state.tab='hub';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">🏠 홈</button><button onclick="state.tab='mypage';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">👤</button><button onclick="state.tab='subscription';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">💳 구독</button><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div></div>
         </div>
         <div class="mb-6 p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50 rounded-lg border border-indigo-100">
-          <p class="text-sm text-gray-700 text-center">감사합니다 센터 선생님들의 업무부담을 줄여드리기 위해 개발된 앱입니다.</p>
+          <p class="text-sm text-gray-700 text-center">사회복지사, 제공인력 선생님들의 업무부담을 줄여드리기 위해 개발된 앱입니다.</p>
           <p class="text-sm text-gray-500 text-center mt-2">🙏 모든 선생님이 원활하게 사용하실 수 있도록, 하루 ${maxUsage}회 이내로 사용해 주시면 감사하겠습니다.</p>
           <p class="text-sm ${remaining <= 2 ? 'text-red-500 font-semibold' : 'text-indigo-500'} text-center mt-2">📊 오늘 사용: ${todayUsage}회 / ${maxUsage}회 (남은 횟수: ${remaining}회)</p>
-          <p class="text-xs text-indigo-500 text-center mt-2">✦ 개발자: 천만석 ✦</p>
         </div>
         <div class="space-y-4">
           <div>
@@ -1514,7 +1513,6 @@ const renderUser = () => {
         <div id="result"></div>
       </div>
       <div class="text-center mt-6 text-xs text-gray-400 space-y-1">
-        <p>💙 감사합니다 주간활동센터</p>
         <p><a href="/terms.html" class="underline">이용약관</a> · <a href="/privacy.html" class="underline">개인정보처리방침</a> · <a href="/refund.html" class="underline">환불정책</a></p>
       </div>
     </div>`;
