@@ -13,14 +13,14 @@ jobs:
         continue-on-error: true
         run: |
           echo "🔔 기록지해방 앱 깨우는 중..."
-          STATUS=$(curl -s -L --max-redirs 5 -o /dev/null -w "%{http_code}" --max-time 120 "https://jukgan-jaripdong-app-93jqyjotebw9s6ykzzncff.streamlit.app/" || echo "000")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 120 "https://jukgan-jaripdong-app-93jqyjotebw9s6ykzzncff.streamlit.app/")
           echo "기록지해방 응답: $STATUS"
 
       - name: Ping 계획서해방2 (Streamlit)
         continue-on-error: true
         run: |
           echo "🔔 계획서해방2 앱 깨우는 중..."
-          STATUS=$(curl -s -L --max-redirs 5 -o /dev/null -w "%{http_code}" --max-time 120 "https://m83g448p3tjqw9tz9nszle.streamlit.app/" || echo "000")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 120 "https://m83g448p3tjqw9tz9nszle.streamlit.app/")
           echo "계획서해방2 응답: $STATUS"
 
       - name: 결과 요약
