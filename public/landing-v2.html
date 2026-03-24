@@ -15,35 +15,14 @@
           fontFamily: {
             sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
           },
-          colors: {
-            accent: {
-              50:  '#ecfdf5',
-              100: '#d1fae5',
-              400: '#34d399',
-              500: '#10b981',
-              600: '#059669',
-            }
-          }
         }
       }
     }
   </script>
   <style>
     * { word-break: keep-all; }
-    body { font-family: 'Pretendard', -apple-system, system-ui, sans-serif; }
+    body { font-family: 'Pretendard', -apple-system, system-ui, sans-serif; background: #f8fafc; color: #0f172a; }
 
-    /* Grain overlay */
-    .grain::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      z-index: 60;
-      pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      opacity: 0.35;
-    }
-
-    /* Animations */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(2rem); }
       to   { opacity: 1; transform: translateY(0); }
@@ -58,22 +37,10 @@
     }
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
-      50%       { transform: translateY(-10px); }
-    }
-    @keyframes countUp {
-      from { opacity: 0; transform: translateY(1rem); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes marquee {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
-    }
-    @keyframes pulse-ring {
-      0% { transform: scale(1); opacity: 0.6; }
-      100% { transform: scale(1.6); opacity: 0; }
+      50%       { transform: translateY(-8px); }
     }
 
-    .anim-fadeInUp  { animation: fadeInUp  0.7s cubic-bezier(0.16,1,0.3,1) both; }
+    .anim-fadeInUp    { animation: fadeInUp  0.7s cubic-bezier(0.16,1,0.3,1) both; }
     .anim-fadeInLeft  { animation: fadeInLeft 0.7s cubic-bezier(0.16,1,0.3,1) both; }
     .anim-fadeInRight { animation: fadeInRight 0.7s cubic-bezier(0.16,1,0.3,1) both; }
     .float { animation: float 4s ease-in-out infinite; }
@@ -82,64 +49,104 @@
     .delay-200 { animation-delay: 200ms; }
     .delay-300 { animation-delay: 300ms; }
     .delay-400 { animation-delay: 400ms; }
-    .delay-500 { animation-delay: 500ms; }
-    .delay-600 { animation-delay: 600ms; }
-
-    /* Glass card */
-    .glass {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.09);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-
-    /* CTA button */
-    .btn-primary {
-      background: #10b981;
-      color: #fff;
-      font-weight: 700;
-      padding: 1rem 2.5rem;
-      font-size: 1.1rem;
-      border-radius: 999px;
-      transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
-      position: relative;
-      overflow: hidden;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      box-shadow: 0 0 0 0 rgba(16,185,129,0.4);
-    }
-    .btn-primary:hover {
-      transform: scale(1.03) translateY(-2px);
-      box-shadow: 0 16px 40px rgba(16,185,129,0.35);
-      background: #059669;
-    }
-    .btn-primary:active { transform: scale(0.98); }
-
-    .btn-ghost {
-      color: rgba(255,255,255,0.7);
-      font-weight: 600;
-      padding: 1rem 2rem;
-      font-size: 1.05rem;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.15);
-      transition: all 0.3s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .btn-ghost:hover {
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(255,255,255,0.3);
-      color: #fff;
-    }
 
     /* Section reveal */
     .reveal { opacity: 0; transform: translateY(2.5rem); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
 
-    /* Mesh gradient blobs */
+    /* Nav */
+    .nav-glass {
+      background: rgba(255,255,255,0.85);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    /* CTA button */
+    .btn-primary {
+      background: #059669;
+      color: #fff;
+      font-weight: 700;
+      padding: 0.9rem 2rem;
+      font-size: 1.05rem;
+      border-radius: 999px;
+      transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 20px rgba(5,150,105,0.25);
+    }
+    .btn-primary:hover {
+      transform: scale(1.03) translateY(-2px);
+      box-shadow: 0 12px 32px rgba(5,150,105,0.35);
+      background: #047857;
+    }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-outline {
+      color: #374151;
+      font-weight: 600;
+      padding: 0.9rem 1.8rem;
+      font-size: 1.05rem;
+      border-radius: 999px;
+      border: 1.5px solid #d1d5db;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: white;
+    }
+    .btn-outline:hover {
+      border-color: #059669;
+      color: #059669;
+      background: #f0fdf4;
+    }
+
+    /* Card */
+    .card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 1.5rem;
+      transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .card:hover {
+      border-color: #6ee7b7;
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.1), 0 0 0 1px rgba(5,150,105,0.12);
+    }
+
+    /* Bento */
+    .bento-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 1.5rem;
+      transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .bento-card:hover {
+      border-color: #a7f3d0;
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    }
+
+    /* Pricing card */
+    .pricing-card {
+      background: white;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 1.75rem;
+      padding: 2.5rem;
+      transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .pricing-card.featured {
+      background: #f0fdf4;
+      border-color: #6ee7b7;
+      box-shadow: 0 8px 40px rgba(5,150,105,0.12);
+    }
+    .pricing-card:hover { transform: translateY(-6px); }
+
+    /* Blob */
     .blob {
       position: absolute;
       border-radius: 50%;
@@ -147,71 +154,57 @@
       pointer-events: none;
     }
 
-    /* Marquee */
-    .marquee-track { display: flex; animation: marquee 28s linear infinite; }
-
-    /* Nav glass */
-    .nav-glass {
-      background: rgba(2,6,23,0.7);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+    /* Pain card */
+    .pain-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 1.25rem;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
 
-    /* Feature bento card */
-    .bento-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
+    /* Step card */
+    .step-card {
+      background: white;
+      border: 1px solid #e5e7eb;
       border-radius: 1.5rem;
-      transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
     }
-    .bento-card:hover {
-      background: rgba(255,255,255,0.06);
-      border-color: rgba(16,185,129,0.3);
-      transform: translateY(-4px);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(16,185,129,0.1);
+    .step-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+
+    /* App floating card */
+    .app-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
 
-    /* Pricing card */
-    .pricing-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 1.75rem;
-      padding: 2.5rem;
-      transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
-    }
-    .pricing-card.featured {
-      background: rgba(16,185,129,0.08);
-      border-color: rgba(16,185,129,0.4);
-      box-shadow: 0 0 60px rgba(16,185,129,0.1);
-    }
-    .pricing-card:hover { transform: translateY(-6px); }
-
-    /* Step connector */
-    .step-line {
-      position: absolute;
-      top: 2.25rem;
-      left: calc(50% + 2.25rem);
-      width: calc(100% - 4.5rem);
-      height: 1px;
-      background: linear-gradient(90deg, rgba(16,185,129,0.4), rgba(16,185,129,0.1));
-    }
+    /* Section bg alt */
+    .bg-alt { background: #f1f5f9; }
   </style>
 </head>
 
-<body class="bg-[#020617] text-white antialiased overflow-x-hidden grain">
+<body class="antialiased overflow-x-hidden">
 
   <!-- ===================== NAV ===================== -->
   <nav class="nav-glass sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <img src="/images/logo_home_only.jpg" alt="복서방 로고" class="h-9 w-9 rounded-xl shadow-md">
-        <span class="font-bold text-base sm:text-lg text-white/90 tracking-tight">복서방</span>
-        <span class="hidden sm:inline text-white/30 text-sm">복지인 서류해방</span>
+        <img src="/images/logo_home_only.jpg" alt="복서방 로고" class="h-9 w-9 rounded-xl shadow-sm">
+        <span class="font-bold text-base sm:text-lg text-gray-900 tracking-tight">복서방</span>
+        <span class="hidden sm:inline text-gray-400 text-sm">복지인 서류해방</span>
       </div>
       <div class="flex items-center gap-2 sm:gap-3">
-        <a href="/" class="text-white/60 hover:text-white text-sm font-medium px-4 py-2 transition-colors hidden sm:block">로그인</a>
-        <a href="/" class="btn-primary !py-2.5 !px-6 !text-sm !rounded-xl">
+        <a href="/" class="text-gray-500 hover:text-gray-800 text-sm font-medium px-4 py-2 transition-colors hidden sm:block">로그인</a>
+        <a href="/" class="btn-primary !py-2.5 !px-5 !text-sm !rounded-xl !shadow-sm">
           무료 시작하기
           <iconify-icon icon="solar:arrow-right-linear" class="text-base"></iconify-icon>
         </a>
@@ -220,51 +213,44 @@
   </nav>
 
   <!-- ===================== HERO ===================== -->
-  <section class="relative min-h-[100dvh] flex items-center overflow-hidden">
+  <section class="relative min-h-[100dvh] flex items-center overflow-hidden" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 30%, #f8fafc 70%, #eff6ff 100%);">
+    <div class="blob w-[500px] h-[500px] bg-emerald-200/50 top-[-15%] right-[-5%]"></div>
+    <div class="blob w-[350px] h-[350px] bg-blue-100/60 bottom-[5%] left-[-5%]"></div>
 
-    <!-- Background blobs -->
-    <div class="blob w-[600px] h-[600px] bg-emerald-900/30 top-[-10%] right-[-10%]"></div>
-    <div class="blob w-[400px] h-[400px] bg-slate-800/50 bottom-[10%] left-[-5%]"></div>
-
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 w-full">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-        <!-- Left: Text -->
+        <!-- Left -->
         <div>
-          <!-- Badge -->
-          <div class="anim-fadeInLeft inline-flex items-center gap-2 px-4 py-2 glass rounded-full text-sm text-emerald-400 font-medium mb-8">
-            <span class="w-2 h-2 bg-emerald-400 rounded-full relative">
-              <span class="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-60"></span>
+          <div class="anim-fadeInLeft inline-flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 rounded-full text-sm text-emerald-700 font-medium mb-8 shadow-sm">
+            <span class="w-2 h-2 bg-emerald-500 rounded-full relative">
+              <span class="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-50"></span>
             </span>
             성인 발달장애인 주간활동센터 맞춤 AI
           </div>
 
-          <!-- Headline -->
-          <h1 class="anim-fadeInLeft delay-100 text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight mb-6">
+          <h1 class="anim-fadeInLeft delay-100 text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight text-gray-900 mb-6">
             서류는 AI에게,<br>
-            <span class="text-emerald-400">선생님은<br class="sm:hidden"> 이용자에게</span>
+            <span class="text-emerald-600">선생님은<br class="sm:hidden"> 이용자에게</span>
           </h1>
 
-          <!-- Subhead -->
-          <p class="anim-fadeInLeft delay-200 text-lg sm:text-xl text-white/50 leading-relaxed mb-10 max-w-[55ch]">
+          <p class="anim-fadeInLeft delay-200 text-lg sm:text-xl text-gray-500 leading-relaxed mb-10 max-w-[52ch]">
             관찰일지, 기록지, 계획서까지 — 말하듯 입력하면<br class="hidden sm:block">
             AI가 전문적인 서류로 자동 완성합니다.
           </p>
 
-          <!-- CTA -->
           <div class="anim-fadeInLeft delay-300 flex flex-col sm:flex-row gap-4 mb-12">
             <a href="/" class="btn-primary">
               10일 무료체험 시작하기
               <iconify-icon icon="solar:arrow-right-bold" class="text-lg"></iconify-icon>
             </a>
-            <button onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})" class="btn-ghost">
-              <iconify-icon icon="solar:play-circle-linear" class="text-lg"></iconify-icon>
+            <button onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})" class="btn-outline">
+              <iconify-icon icon="solar:play-circle-linear" class="text-lg text-emerald-600"></iconify-icon>
               서비스 둘러보기
             </button>
           </div>
 
-          <!-- Trust -->
-          <div class="anim-fadeInLeft delay-400 flex items-center gap-6 text-sm text-white/35">
+          <div class="anim-fadeInLeft delay-400 flex items-center gap-6 text-sm text-gray-400">
             <div class="flex items-center gap-1.5">
               <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 text-base"></iconify-icon>
               카드 정보 불필요
@@ -280,50 +266,46 @@
           </div>
         </div>
 
-        <!-- Right: App icons floating -->
-        <div class="anim-fadeInRight delay-200 relative flex flex-col gap-5 items-center lg:items-end">
-
-          <!-- App cards -->
-          <div class="glass rounded-3xl p-6 w-full max-w-sm float" style="animation-delay:0s">
+        <!-- Right: App cards -->
+        <div class="anim-fadeInRight delay-200 flex flex-col gap-4 items-center lg:items-end">
+          <div class="app-card w-full max-w-sm float" style="animation-delay:0s">
             <div class="flex items-center gap-4 mb-4">
-              <img src="/images/logo_ilgi.jpg" alt="일지해방" class="w-14 h-14 rounded-2xl shadow-lg">
+              <img src="/images/logo_ilgi.jpg" alt="일지해방" class="w-14 h-14 rounded-2xl shadow-md">
               <div>
-                <p class="font-bold text-white text-lg">일지 해방</p>
-                <p class="text-white/40 text-sm">AI 관찰일지 자동 작성</p>
+                <p class="font-bold text-gray-900 text-lg">일지 해방</p>
+                <p class="text-gray-400 text-sm">AI 관찰일지 자동 작성</p>
               </div>
             </div>
-            <div class="bg-white/5 rounded-xl p-3 text-sm text-white/50 leading-relaxed">
-              "홍길동 이용자가 오늘 볼링 활동에서 점수가 올라 만족스러워했으며 점심은 잘 먹었습니다"
-              <span class="text-emerald-400 ml-1">→ AI 작성 중...</span>
+            <div class="bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm text-gray-500 leading-relaxed">
+              "홍길동 이용자가 오늘 볼링 활동에서 점수가 올라 만족스러워했으며..."
+              <span class="text-emerald-600 font-medium ml-1">AI 작성 중...</span>
             </div>
           </div>
 
-          <div class="glass rounded-3xl p-6 w-full max-w-sm float" style="animation-delay:1.3s; margin-left: 2rem;">
+          <div class="app-card w-full max-w-sm float" style="animation-delay:1.3s; margin-left:1.5rem">
             <div class="flex items-center gap-4 mb-4">
-              <img src="/images/logo_girokgi.jpg" alt="기록지해방" class="w-14 h-14 rounded-2xl shadow-lg">
+              <img src="/images/logo_girokgi.jpg" alt="기록지해방" class="w-14 h-14 rounded-2xl shadow-md">
               <div>
-                <p class="font-bold text-white text-lg">기록지 해방</p>
-                <p class="text-white/40 text-sm">일지 → 엑셀 자동 연동</p>
+                <p class="font-bold text-gray-900 text-lg">기록지 해방</p>
+                <p class="text-gray-400 text-sm">일지 → 엑셀 자동 연동</p>
               </div>
             </div>
-            <div class="flex items-center gap-2">
-              <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                <div class="h-full w-4/5 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"></div>
+            <div class="flex items-center gap-3">
+              <div class="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full w-4/5 bg-emerald-500 rounded-full"></div>
               </div>
-              <span class="text-emerald-400 text-sm font-bold">80% 절약</span>
+              <span class="text-emerald-600 text-sm font-bold">80% 절약</span>
             </div>
           </div>
 
-          <div class="glass rounded-3xl p-6 w-full max-w-sm float" style="animation-delay:0.7s">
+          <div class="app-card w-full max-w-sm float" style="animation-delay:0.7s">
             <div class="flex items-center gap-4">
-              <img src="/images/logo_plan.jpg" alt="계획서해방" class="w-14 h-14 rounded-2xl shadow-lg">
+              <img src="/images/logo_plan.jpg" alt="계획서해방" class="w-14 h-14 rounded-2xl shadow-md">
               <div>
-                <p class="font-bold text-white text-lg">계획서 해방</p>
-                <p class="text-white/40 text-sm">수업·활동 계획서 AI 작성</p>
+                <p class="font-bold text-gray-900 text-lg">계획서 해방</p>
+                <p class="text-gray-400 text-sm">수업·활동 계획서 AI 작성</p>
               </div>
-              <div class="ml-auto">
-                <span class="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">NEW</span>
-              </div>
+              <span class="ml-auto text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium">NEW</span>
             </div>
           </div>
         </div>
@@ -333,98 +315,86 @@
   </section>
 
   <!-- ===================== STATS ===================== -->
-  <section class="relative py-16 border-y border-white/5 reveal">
+  <section class="bg-white border-y border-gray-100 py-14 reveal">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-
         <div class="text-center">
-          <p class="text-4xl sm:text-5xl font-extrabold text-white mb-2">10<span class="text-emerald-400">일</span></p>
-          <p class="text-white/40 text-sm">무료 체험 기간</p>
+          <p class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-2">10<span class="text-emerald-600">일</span></p>
+          <p class="text-gray-400 text-sm">무료 체험 기간</p>
         </div>
         <div class="text-center">
-          <p class="text-4xl sm:text-5xl font-extrabold text-white mb-2">하루<span class="text-emerald-400 text-3xl ml-1">200원</span></p>
-          <p class="text-white/40 text-sm">월간 구독 기준</p>
+          <p class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-2"><span class="text-2xl font-bold text-gray-400 mr-1">하루</span><span class="text-emerald-600">200원</span></p>
+          <p class="text-gray-400 text-sm">월간 구독 기준</p>
         </div>
         <div class="text-center">
-          <p class="text-4xl sm:text-5xl font-extrabold text-white mb-2">30<span class="text-emerald-400">분</span></p>
-          <p class="text-white/40 text-sm">하루 절약 시간</p>
+          <p class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-2">30<span class="text-emerald-600">분</span></p>
+          <p class="text-gray-400 text-sm">하루 절약 시간</p>
         </div>
         <div class="text-center">
-          <p class="text-4xl sm:text-5xl font-extrabold text-white mb-2">3<span class="text-emerald-400 text-3xl ml-1">가지</span></p>
-          <p class="text-white/40 text-sm">복서방 시리즈 앱</p>
+          <p class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-2">3<span class="text-emerald-600 text-2xl font-bold ml-1">가지 앱</span></p>
+          <p class="text-gray-400 text-sm">복서방 시리즈</p>
         </div>
-
       </div>
     </div>
   </section>
 
   <!-- ===================== PAIN POINTS ===================== -->
-  <section class="relative py-24 overflow-hidden reveal" id="pain">
-    <div class="blob w-[500px] h-[500px] bg-slate-800/40 top-0 left-1/4"></div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-
+  <section class="relative py-24 overflow-hidden reveal bg-alt" id="pain">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
         <!-- Left: Image -->
         <div class="order-2 lg:order-1">
-          <div class="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+          <div class="rounded-3xl overflow-hidden border border-gray-200 shadow-xl">
             <img src="/images/hero_bg.jpg" alt="서류 작업에서 이용자 돌봄으로" class="w-full h-auto" loading="lazy" decoding="async">
-            <div class="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent"></div>
-            <div class="absolute bottom-0 left-0 right-0 p-6">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-red-400 text-sm font-medium mb-1 flex items-center gap-1">
-                    <iconify-icon icon="solar:sad-circle-linear"></iconify-icon> Before
-                  </p>
-                  <p class="text-white font-bold">퇴근 후에도 서류와 씨름...</p>
+            <div class="bg-white px-6 py-5 border-t border-gray-100">
+              <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 bg-red-400 rounded-full"></span>
+                  <span class="text-gray-500">Before: 퇴근 후에도 서류 작업...</span>
                 </div>
-                <iconify-icon icon="solar:arrow-right-bold" class="text-white/50 text-2xl mx-4"></iconify-icon>
-                <div class="text-right">
-                  <p class="text-emerald-400 text-sm font-medium mb-1 flex items-center gap-1 justify-end">
-                    <iconify-icon icon="solar:smile-circle-linear"></iconify-icon> After
-                  </p>
-                  <p class="text-white font-bold">이용자와 함께하는 시간</p>
+                <iconify-icon icon="solar:arrow-right-bold" class="text-gray-300 text-lg"></iconify-icon>
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full"></span>
+                  <span class="text-gray-500">After: 이용자와 함께하는 시간</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Right: Pain points -->
+        <!-- Right -->
         <div class="order-1 lg:order-2">
-          <p class="text-emerald-400 text-sm font-semibold tracking-widest uppercase mb-4">혹시 이런 경험, 있으시죠?</p>
-          <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight mb-10">
-            선생님들은<br>이미 충분히<br><span class="text-white/30">힘드십니다.</span>
+          <p class="text-emerald-600 text-sm font-semibold tracking-widest uppercase mb-4">혹시 이런 경험, 있으시죠?</p>
+          <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight text-gray-900 mb-10">
+            선생님들은<br>이미 충분히<br><span class="text-gray-300">힘드십니다.</span>
           </h2>
-
-          <div class="space-y-5">
-            <div class="glass rounded-2xl p-5 flex items-start gap-4">
-              <div class="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center flex-shrink-0">
-                <iconify-icon icon="solar:moon-sleep-bold" class="text-red-400 text-xl"></iconify-icon>
+          <div class="space-y-4">
+            <div class="pain-card">
+              <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
+                <iconify-icon icon="solar:moon-sleep-bold" class="text-red-500 text-xl"></iconify-icon>
               </div>
               <div>
-                <p class="font-semibold text-white mb-1">퇴근 후 야근이 일상</p>
-                <p class="text-white/45 text-sm leading-relaxed">퇴근 후에도 관찰일지를 써야 해서 야근이 반복됩니다.</p>
+                <p class="font-semibold text-gray-800 mb-0.5">퇴근 후 야근이 일상</p>
+                <p class="text-gray-400 text-sm leading-relaxed">퇴근 후에도 관찰일지를 써야 해서 야근이 반복됩니다.</p>
               </div>
             </div>
-
-            <div class="glass rounded-2xl p-5 flex items-start gap-4">
-              <div class="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
-                <iconify-icon icon="solar:copy-bold" class="text-amber-400 text-xl"></iconify-icon>
+            <div class="pain-card">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                <iconify-icon icon="solar:copy-bold" class="text-amber-500 text-xl"></iconify-icon>
               </div>
               <div>
-                <p class="font-semibold text-white mb-1">같은 내용 반복 입력</p>
-                <p class="text-white/45 text-sm leading-relaxed">일지·기록지·계획서에 같은 내용을 세 번씩 작성합니다.</p>
+                <p class="font-semibold text-gray-800 mb-0.5">같은 내용 반복 입력</p>
+                <p class="text-gray-400 text-sm leading-relaxed">일지·기록지·계획서에 같은 내용을 세 번씩 작성합니다.</p>
               </div>
             </div>
-
-            <div class="glass rounded-2xl p-5 flex items-start gap-4">
-              <div class="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center flex-shrink-0">
-                <iconify-icon icon="solar:users-group-rounded-bold" class="text-blue-400 text-xl"></iconify-icon>
+            <div class="pain-card">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                <iconify-icon icon="solar:users-group-rounded-bold" class="text-blue-500 text-xl"></iconify-icon>
               </div>
               <div>
-                <p class="font-semibold text-white mb-1">이용자와의 시간이 부족</p>
-                <p class="text-white/45 text-sm leading-relaxed">서류 작업 때문에 정작 이용자와 함께할 시간이 줄어듭니다.</p>
+                <p class="font-semibold text-gray-800 mb-0.5">이용자와의 시간이 부족</p>
+                <p class="text-gray-400 text-sm leading-relaxed">서류 작업 때문에 정작 이용자와 함께할 시간이 줄어듭니다.</p>
               </div>
             </div>
           </div>
@@ -434,73 +404,69 @@
     </div>
   </section>
 
-  <!-- ===================== FEATURES (BENTO) ===================== -->
-  <section id="features" class="relative py-24 reveal">
+  <!-- ===================== FEATURES ===================== -->
+  <section id="features" class="relative py-24 bg-white reveal">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-      <div class="mb-16">
-        <p class="text-emerald-400 text-sm font-semibold tracking-widest uppercase mb-4">복서방 시리즈</p>
-        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-          <span class="text-emerald-400">복</span>지인 <span class="text-emerald-400">서</span>류 해<span class="text-emerald-400">방</span><br>
-          <span class="text-white/40 text-3xl font-bold">이렇게 도와드립니다</span>
+      <div class="mb-14">
+        <p class="text-emerald-600 text-sm font-semibold tracking-widest uppercase mb-4">복서방 시리즈</p>
+        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight text-gray-900">
+          <span class="text-emerald-600">복</span>지인 <span class="text-emerald-600">서</span>류 해<span class="text-emerald-600">방</span><br>
+          <span class="text-gray-300 text-3xl font-bold">이렇게 도와드립니다</span>
         </h2>
       </div>
 
-      <!-- Bento Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 auto-rows-auto">
+      <!-- Bento -->
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
 
-        <!-- 일지해방: large -->
-        <div class="bento-card md:col-span-2 lg:col-span-2 p-8 row-span-1">
-          <div class="w-14 h-14 rounded-2xl bg-sky-500/15 flex items-center justify-center mb-6">
-            <iconify-icon icon="solar:document-text-bold" class="text-sky-400 text-2xl"></iconify-icon>
+        <div class="bento-card md:col-span-2 lg:col-span-2 p-8">
+          <div class="w-14 h-14 rounded-2xl bg-sky-50 flex items-center justify-center mb-6 border border-sky-100">
+            <iconify-icon icon="solar:document-text-bold" class="text-sky-500 text-2xl"></iconify-icon>
           </div>
-          <h3 class="text-2xl font-bold text-white mb-3">일지 해방</h3>
-          <p class="text-white/45 leading-relaxed mb-6">말하듯 편하게 입력하면 전문적인 관찰일지가 완성됩니다. 4가지 말투 스타일을 지원합니다.</p>
+          <h3 class="text-2xl font-bold text-gray-900 mb-3">일지 해방</h3>
+          <p class="text-gray-500 leading-relaxed mb-6">말하듯 편하게 입력하면 전문적인 관찰일지가 완성됩니다. 4가지 말투 스타일을 지원합니다.</p>
           <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1 rounded-full text-sm bg-sky-500/15 text-sky-400 border border-sky-500/25 font-medium">AI 자동 작성</span>
-            <span class="px-3 py-1 rounded-full text-sm bg-sky-500/15 text-sky-400 border border-sky-500/25 font-medium">4가지 말투</span>
-            <span class="px-3 py-1 rounded-full text-sm bg-sky-500/15 text-sky-400 border border-sky-500/25 font-medium">즉시 복사</span>
+            <span class="px-3 py-1 rounded-full text-sm bg-sky-50 text-sky-600 border border-sky-100 font-medium">AI 자동 작성</span>
+            <span class="px-3 py-1 rounded-full text-sm bg-sky-50 text-sky-600 border border-sky-100 font-medium">4가지 말투</span>
+            <span class="px-3 py-1 rounded-full text-sm bg-sky-50 text-sky-600 border border-sky-100 font-medium">즉시 복사</span>
           </div>
         </div>
 
-        <!-- 기록지해방 -->
         <div class="bento-card lg:col-span-2 p-8">
-          <div class="w-14 h-14 rounded-2xl bg-teal-500/15 flex items-center justify-center mb-6">
-            <iconify-icon icon="solar:chart-square-bold" class="text-teal-400 text-2xl"></iconify-icon>
+          <div class="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center mb-6 border border-teal-100">
+            <iconify-icon icon="solar:chart-square-bold" class="text-teal-600 text-2xl"></iconify-icon>
           </div>
-          <h3 class="text-2xl font-bold text-white mb-3">기록지 해방</h3>
-          <p class="text-white/45 leading-relaxed mb-6">일지를 작성하면 기록지 엑셀이 자동으로 채워집니다. 이중 작업을 완전히 없앱니다.</p>
+          <h3 class="text-2xl font-bold text-gray-900 mb-3">기록지 해방</h3>
+          <p class="text-gray-500 leading-relaxed mb-6">일지를 작성하면 기록지 엑셀이 자동으로 채워집니다. 이중 작업을 완전히 없앱니다.</p>
           <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1 rounded-full text-sm bg-teal-500/15 text-teal-400 border border-teal-500/25 font-medium">자동 연동</span>
-            <span class="px-3 py-1 rounded-full text-sm bg-teal-500/15 text-teal-400 border border-teal-500/25 font-medium">엑셀 출력</span>
+            <span class="px-3 py-1 rounded-full text-sm bg-teal-50 text-teal-600 border border-teal-100 font-medium">자동 연동</span>
+            <span class="px-3 py-1 rounded-full text-sm bg-teal-50 text-teal-600 border border-teal-100 font-medium">엑셀 출력</span>
           </div>
         </div>
 
-        <!-- 계획서해방: tall -->
-        <div class="bento-card md:col-span-1 lg:col-span-1 p-8 lg:row-span-2 flex flex-col justify-between">
+        <div class="bento-card lg:col-span-1 lg:row-span-2 p-8 flex flex-col justify-between">
           <div>
-            <div class="w-14 h-14 rounded-2xl bg-violet-500/15 flex items-center justify-center mb-6">
-              <iconify-icon icon="solar:calendar-bold" class="text-violet-400 text-2xl"></iconify-icon>
+            <div class="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center mb-6 border border-violet-100">
+              <iconify-icon icon="solar:calendar-bold" class="text-violet-600 text-2xl"></iconify-icon>
             </div>
-            <h3 class="text-2xl font-bold text-white mb-3">계획서 해방</h3>
-            <p class="text-white/45 leading-relaxed mb-6">수업계획서와 활동계획서를 AI가 함께 작성합니다. 다음 달 계획도 손쉽게.</p>
+            <h3 class="text-2xl font-bold text-gray-900 mb-3">계획서 해방</h3>
+            <p class="text-gray-500 leading-relaxed mb-6">수업계획서와 활동계획서를 AI가 함께 작성합니다. 다음 달 계획도 손쉽게.</p>
           </div>
           <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1 rounded-full text-sm bg-violet-500/15 text-violet-400 border border-violet-500/25 font-medium">AI 기획</span>
-            <span class="px-3 py-1 rounded-full text-sm bg-violet-500/15 text-violet-400 border border-violet-500/25 font-medium">수업·활동</span>
+            <span class="px-3 py-1 rounded-full text-sm bg-violet-50 text-violet-600 border border-violet-100 font-medium">AI 기획</span>
+            <span class="px-3 py-1 rounded-full text-sm bg-violet-50 text-violet-600 border border-violet-100 font-medium">수업·활동</span>
           </div>
         </div>
 
-        <!-- Quote card -->
-        <div class="bento-card md:col-span-3 lg:col-span-4 p-8 flex items-center gap-6">
-          <div class="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-            <iconify-icon icon="solar:heart-bold" class="text-emerald-400 text-2xl"></iconify-icon>
+        <!-- Quote -->
+        <div class="bento-card md:col-span-3 lg:col-span-4 p-8 flex items-center gap-5" style="background: linear-gradient(135deg, #f0fdf4, #ecfdf5);">
+          <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+            <iconify-icon icon="solar:heart-bold" class="text-emerald-600 text-2xl"></iconify-icon>
           </div>
           <div>
-            <p class="text-lg sm:text-2xl font-bold text-white leading-snug mb-2">
-              "우리집 서방은 못 해줘도 <span class="text-emerald-400">복서방</span>은 해줍니다"
+            <p class="text-xl sm:text-2xl font-bold text-gray-800 leading-snug mb-1">
+              "우리집 서방은 못 해줘도 <span class="text-emerald-600">복서방</span>은 해줍니다"
             </p>
-            <p class="text-white/40 text-sm">서류만큼은요 — 복서방 팀 일동</p>
+            <p class="text-gray-400 text-sm">서류만큼은요 — 복서방 팀 일동</p>
           </div>
         </div>
 
@@ -509,61 +475,54 @@
   </section>
 
   <!-- ===================== HOW IT WORKS ===================== -->
-  <section class="relative py-24 overflow-hidden reveal">
-    <div class="blob w-[400px] h-[400px] bg-emerald-900/20 bottom-0 right-0"></div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-
+  <section class="relative py-24 bg-alt reveal">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16">
-        <p class="text-emerald-400 text-sm font-semibold tracking-widest uppercase mb-4">사용 방법</p>
-        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight">
-          사용 방법은 <span class="text-white/30">간단합니다</span>
+        <p class="text-emerald-600 text-sm font-semibold tracking-widest uppercase mb-4">사용 방법</p>
+        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900">
+          사용 방법은 <span class="text-gray-300">간단합니다</span>
         </h2>
       </div>
-
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        <div class="glass rounded-3xl p-8 text-center relative">
-          <div class="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center mx-auto mb-6">
-            <span class="text-2xl font-extrabold text-emerald-400">1</span>
+        <div class="step-card">
+          <div class="w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-200 flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl font-extrabold text-emerald-600">1</span>
           </div>
-          <h3 class="text-xl font-bold text-white mb-3">편하게 입력</h3>
-          <p class="text-white/45 leading-relaxed">오늘 활동을 말하듯 편하게 적어주세요. 문장이 짧아도 괜찮습니다.</p>
+          <h3 class="text-xl font-bold text-gray-800 mb-3">편하게 입력</h3>
+          <p class="text-gray-400 leading-relaxed">오늘 활동을 말하듯 편하게 적어주세요. 짧은 문장도 괜찮습니다.</p>
         </div>
-
-        <div class="glass rounded-3xl p-8 text-center">
-          <div class="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center mx-auto mb-6">
-            <span class="text-2xl font-extrabold text-emerald-400">2</span>
+        <div class="step-card">
+          <div class="w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-200 flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl font-extrabold text-emerald-600">2</span>
           </div>
-          <h3 class="text-xl font-bold text-white mb-3">AI가 변환</h3>
-          <p class="text-white/45 leading-relaxed">AI가 전문적인 서류 형식으로 자동 변환합니다. 4가지 말투 중 선택하세요.</p>
+          <h3 class="text-xl font-bold text-gray-800 mb-3">AI가 변환</h3>
+          <p class="text-gray-400 leading-relaxed">AI가 전문적인 서류 형식으로 자동 변환합니다. 4가지 말투 중 선택하세요.</p>
         </div>
-
-        <div class="glass rounded-3xl p-8 text-center">
-          <div class="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center mx-auto mb-6">
-            <span class="text-2xl font-extrabold text-emerald-400">3</span>
+        <div class="step-card">
+          <div class="w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-200 flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl font-extrabold text-emerald-600">3</span>
           </div>
-          <h3 class="text-xl font-bold text-white mb-3">바로 완성</h3>
-          <p class="text-white/45 leading-relaxed">확인하고 저장하거나 복사하면 끝. 오늘 서류 업무는 5분 만에 완료.</p>
+          <h3 class="text-xl font-bold text-gray-800 mb-3">바로 완성</h3>
+          <p class="text-gray-400 leading-relaxed">확인하고 저장하거나 복사하면 끝. 오늘 서류 업무는 5분 만에 완료.</p>
         </div>
-
       </div>
     </div>
   </section>
 
   <!-- ===================== BRAND MOMENT ===================== -->
-  <section class="relative py-32 overflow-hidden reveal">
+  <section class="relative py-28 overflow-hidden reveal">
     <div class="absolute inset-0">
-      <img src="/images/랜딩페이지-2.jpg" alt="복서방 비전" class="w-full h-full object-cover opacity-20" loading="lazy" decoding="async">
-      <div class="absolute inset-0 bg-gradient-to-r from-[#020617] via-[#020617]/80 to-[#020617]/60"></div>
+      <img src="/images/랜딩페이지-2.jpg" alt="복서방 비전" class="w-full h-full object-cover" loading="lazy" decoding="async">
+      <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(255,255,255,0.97) 40%, rgba(255,255,255,0.7) 70%, rgba(255,255,255,0.3) 100%);"></div>
     </div>
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-2xl">
-        <p class="text-emerald-400 text-sm font-semibold tracking-widest uppercase mb-6">복서방의 약속</p>
-        <h2 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-8">
+      <div class="max-w-xl">
+        <p class="text-emerald-600 text-sm font-semibold tracking-widest uppercase mb-6">복서방의 약속</p>
+        <h2 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-gray-900 mb-8">
           서류는 복서방이,<br>
-          <span class="text-emerald-400">선생님은<br>이용자에게.</span>
+          <span class="text-emerald-600">선생님은<br>이용자에게.</span>
         </h2>
-        <p class="text-white/50 text-lg leading-relaxed mb-10">
+        <p class="text-gray-500 text-lg leading-relaxed mb-10">
           사회복지사, 제공인력 선생님들의 업무 부담을 줄이기 위해 만들었습니다.<br>
           더 많은 시간을 이용자와 함께 보내실 수 있도록.
         </p>
@@ -576,172 +535,153 @@
   </section>
 
   <!-- ===================== PRICING ===================== -->
-  <section class="relative py-24 reveal" id="pricing">
+  <section class="relative py-24 bg-white reveal" id="pricing">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-      <div class="text-center mb-16">
-        <p class="text-emerald-400 text-sm font-semibold tracking-widest uppercase mb-4">요금제</p>
-        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">합리적인 요금제</h2>
-        <p class="text-white/45 text-lg">하루 200원으로 서류 걱정 끝</p>
+      <div class="text-center mb-14">
+        <p class="text-emerald-600 text-sm font-semibold tracking-widest uppercase mb-4">요금제</p>
+        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 mb-4">합리적인 요금제</h2>
+        <p class="text-gray-400 text-lg">하루 200원으로 서류 걱정 끝</p>
       </div>
 
-      <!-- Features included always -->
-      <div class="flex flex-wrap justify-center gap-4 mb-12">
-        <span class="flex items-center gap-2 px-4 py-2 glass rounded-full text-sm text-white/60">
-          <iconify-icon icon="solar:cup-hot-bold" class="text-amber-400"></iconify-icon>
+      <div class="flex flex-wrap justify-center gap-3 mb-12">
+        <span class="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-100 rounded-full text-sm text-amber-700">
+          <iconify-icon icon="solar:cup-hot-bold" class="text-amber-500"></iconify-icon>
           커피 한 잔 값으로
         </span>
-        <span class="flex items-center gap-2 px-4 py-2 glass rounded-full text-sm text-white/60">
-          <iconify-icon icon="solar:clock-circle-bold" class="text-emerald-400"></iconify-icon>
+        <span class="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full text-sm text-emerald-700">
+          <iconify-icon icon="solar:clock-circle-bold" class="text-emerald-500"></iconify-icon>
           하루 30분 절약
         </span>
-        <span class="flex items-center gap-2 px-4 py-2 glass rounded-full text-sm text-white/60">
-          <iconify-icon icon="solar:calendar-bold" class="text-blue-400"></iconify-icon>
+        <span class="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full text-sm text-blue-700">
+          <iconify-icon icon="solar:calendar-bold" class="text-blue-500"></iconify-icon>
           한달 10시간 절약
         </span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-
         <!-- Monthly -->
         <div class="pricing-card">
-          <p class="text-sm font-semibold text-white/40 uppercase tracking-widest mb-4">월간 구독</p>
+          <p class="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-4">월간 구독</p>
           <div class="mb-6">
-            <span class="text-5xl font-extrabold text-white">6,000</span>
-            <span class="text-white/40 text-base ml-1">원 / 월</span>
+            <span class="text-5xl font-extrabold text-gray-900">6,000</span>
+            <span class="text-gray-400 text-base ml-1">원 / 월</span>
           </div>
-          <ul class="space-y-3 mb-8 text-sm text-white/55">
+          <ul class="space-y-3 mb-8 text-sm text-gray-500">
             <li class="flex items-center gap-2">
-              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-400 flex-shrink-0"></iconify-icon>
+              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 flex-shrink-0"></iconify-icon>
               복서방 시리즈 전체 이용
             </li>
             <li class="flex items-center gap-2">
-              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-400 flex-shrink-0"></iconify-icon>
+              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 flex-shrink-0"></iconify-icon>
               AI 관찰일지 자동 작성
             </li>
             <li class="flex items-center gap-2">
-              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-400 flex-shrink-0"></iconify-icon>
+              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 flex-shrink-0"></iconify-icon>
               기록지·계획서 자동화
             </li>
             <li class="flex items-center gap-2">
-              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-400 flex-shrink-0"></iconify-icon>
+              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 flex-shrink-0"></iconify-icon>
               월 단위 자유롭게 해지 가능
             </li>
           </ul>
-          <a href="/" class="block w-full text-center py-3 rounded-xl border border-white/15 text-white/70 font-semibold hover:bg-white/5 hover:text-white transition-all">
+          <a href="/" class="block w-full text-center py-3.5 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all">
             시작하기
           </a>
         </div>
 
-        <!-- Yearly: Featured -->
+        <!-- Yearly -->
         <div class="pricing-card featured relative">
           <div class="absolute -top-4 left-1/2 -translate-x-1/2">
-            <span class="px-4 py-1.5 bg-emerald-500 text-white text-sm font-bold rounded-full shadow-lg shadow-emerald-500/30">추천 · 17% 할인</span>
+            <span class="px-4 py-1.5 bg-emerald-600 text-white text-sm font-bold rounded-full shadow-md shadow-emerald-200">추천 · 17% 할인</span>
           </div>
-          <p class="text-sm font-semibold text-emerald-400 uppercase tracking-widest mb-4">연간 구독</p>
+          <p class="text-sm font-semibold text-emerald-600 uppercase tracking-widest mb-4">연간 구독</p>
           <div class="mb-1">
-            <span class="text-5xl font-extrabold text-white">60,000</span>
-            <span class="text-white/40 text-base ml-1">원 / 년</span>
+            <span class="text-5xl font-extrabold text-gray-900">60,000</span>
+            <span class="text-gray-400 text-base ml-1">원 / 년</span>
           </div>
-          <p class="text-white/35 text-sm mb-6">월 5,000원 꼴 · 매월 1,000원 절약</p>
-          <ul class="space-y-3 mb-8 text-sm text-white/55">
+          <p class="text-gray-400 text-sm mb-6">월 5,000원 꼴 · 매월 1,000원 절약</p>
+          <ul class="space-y-3 mb-8 text-sm text-gray-500">
             <li class="flex items-center gap-2">
-              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-400 flex-shrink-0"></iconify-icon>
+              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 flex-shrink-0"></iconify-icon>
               복서방 시리즈 전체 이용
             </li>
             <li class="flex items-center gap-2">
-              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-400 flex-shrink-0"></iconify-icon>
+              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 flex-shrink-0"></iconify-icon>
               AI 관찰일지 자동 작성
             </li>
             <li class="flex items-center gap-2">
-              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-400 flex-shrink-0"></iconify-icon>
+              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 flex-shrink-0"></iconify-icon>
               기록지·계획서 자동화
             </li>
             <li class="flex items-center gap-2">
-              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-400 flex-shrink-0"></iconify-icon>
+              <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 flex-shrink-0"></iconify-icon>
               연간 결제로 12,000원 절약
             </li>
           </ul>
-          <a href="/" class="btn-primary block text-center">
+          <a href="/" class="btn-primary block text-center w-full justify-center">
             연간으로 시작하기
           </a>
         </div>
-
       </div>
 
-      <p class="text-center text-white/30 text-sm mt-8">
-        회원가입 시 <strong class="text-white/55">10일 무료체험</strong> 제공 · 카드 정보 없이 바로 시작
+      <p class="text-center text-gray-400 text-sm mt-8">
+        회원가입 시 <strong class="text-gray-600">10일 무료체험</strong> 제공 · 카드 정보 없이 바로 시작
       </p>
     </div>
   </section>
 
   <!-- ===================== FINAL CTA ===================== -->
-  <section class="relative py-32 overflow-hidden reveal">
-    <div class="blob w-[600px] h-[600px] bg-emerald-900/30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+  <section class="relative py-28 overflow-hidden reveal" style="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #d1fae5 100%);">
+    <div class="blob w-[500px] h-[500px] bg-emerald-200/60 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
     <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <p class="text-emerald-400 text-sm font-semibold tracking-widest uppercase mb-6">지금 시작하세요</p>
-      <h2 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6">
+      <p class="text-emerald-600 text-sm font-semibold tracking-widest uppercase mb-6">지금 시작하세요</p>
+      <h2 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-gray-900 mb-6">
         복서방한테<br>맡겨보세요
       </h2>
-      <p class="text-white/45 text-xl mb-10">10일 무료체험 · 카드 정보 불필요 · 1분이면 가입 완료</p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/" class="btn-primary !text-lg !px-10 !py-5">
-          무료체험 시작하기
-          <iconify-icon icon="solar:arrow-right-bold" class="text-xl"></iconify-icon>
-        </a>
-      </div>
+      <p class="text-gray-500 text-xl mb-10">10일 무료체험 · 카드 정보 불필요 · 1분이면 가입 완료</p>
+      <a href="/" class="btn-primary !text-lg !px-10 !py-5">
+        무료체험 시작하기
+        <iconify-icon icon="solar:arrow-right-bold" class="text-xl"></iconify-icon>
+      </a>
     </div>
   </section>
 
   <!-- ===================== FOOTER ===================== -->
-  <footer class="border-t border-white/5 py-12">
+  <footer class="bg-white border-t border-gray-100 py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col md:flex-row justify-between gap-8">
-        <!-- Brand -->
         <div class="max-w-sm">
           <div class="flex items-center gap-3 mb-4">
             <img src="/images/logo_home_only.jpg" alt="복서방" class="h-9 w-9 rounded-xl">
-            <span class="font-bold text-white">복서방</span>
+            <span class="font-bold text-gray-800">복서방</span>
           </div>
-          <p class="text-white/35 text-sm leading-relaxed">
+          <p class="text-gray-400 text-sm leading-relaxed">
             복지인 서류해방 · 성인 발달장애인 주간활동센터 맞춤 AI 서류 자동화 서비스
           </p>
         </div>
-
-        <!-- Legal -->
-        <div class="text-sm text-white/30 space-y-1.5">
+        <div class="text-sm text-gray-400 space-y-1.5">
           <p>복서방 · 대표: 천만석 · 사업자등록번호: 355-18-02470</p>
           <p>대표번호: 070-8065-0429 · 통신판매업:
-            <a href="https://www.ftc.go.kr/bizCommPop.do?wrkr_no=3551802470" target="_blank" rel="noopener" class="hover:text-white/60 underline transition-colors">2026-전북군산-00231</a>
+            <a href="https://www.ftc.go.kr/bizCommPop.do?wrkr_no=3551802470" target="_blank" rel="noopener" class="hover:text-gray-600 underline transition-colors">2026-전북군산-00231</a>
           </p>
           <p>전북특별자치도 군산시 신평2길 12-7, 402호</p>
           <div class="flex gap-4 pt-2">
-            <a href="/terms.html" class="hover:text-white/60 transition-colors">이용약관</a>
-            <a href="/privacy.html" class="hover:text-white/60 transition-colors">개인정보처리방침</a>
-            <a href="/refund.html" class="hover:text-white/60 transition-colors">환불정책</a>
+            <a href="/terms.html" class="hover:text-gray-600 transition-colors">이용약관</a>
+            <a href="/privacy.html" class="hover:text-gray-600 transition-colors">개인정보처리방침</a>
+            <a href="/refund.html" class="hover:text-gray-600 transition-colors">환불정책</a>
           </div>
-          <p class="pt-2 text-white/20">© 2026 복서방. All rights reserved.</p>
+          <p class="pt-2 text-gray-300">© 2026 복서방. All rights reserved.</p>
         </div>
       </div>
     </div>
   </footer>
 
-  <!-- ===================== SCRIPTS ===================== -->
   <script>
-    // Intersection Observer for section reveals
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          // Stagger children with reveal class
-          const children = entry.target.querySelectorAll('.stagger-child');
-          children.forEach((el, i) => {
-            setTimeout(() => el.classList.add('visible'), i * 80);
-          });
-        }
+        if (entry.isIntersecting) entry.target.classList.add('visible');
       });
     }, { threshold: 0.1 });
-
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   </script>
 
