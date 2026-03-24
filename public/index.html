@@ -504,12 +504,12 @@ const renderLanding = () => {
                   <span class="text-4xl font-extrabold text-gray-800">${plan.price.toLocaleString()}</span>
                   <span class="text-gray-400 text-base">원 / ${plan.interval === 'month' ? '월' : '년'}</span>
                 </div>
-                ${plan.interval === 'year' ? '<p class="text-sm text-gray-400 mb-4">월 5,000원 꼴 · 연간 12,000원 절약</p>' : ''}
+                ${plan.interval === 'year' ? '<p class="text-sm text-gray-400 mb-4">월 5,000원 꼴 · 1년에 12,000원 절약</p>' : ''}
                 <ul class="text-base text-gray-600 space-y-3 mb-7">
                   <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 복서방 시리즈 전체 이용</li>
                   <li class="flex items-center gap-2"><span class="text-green-500">✓</span> AI 관찰일지 자동 작성</li>
                   <li class="flex items-center gap-2"><span class="text-green-500">✓</span> 기록지·계획서 자동화</li>
-                  <li class="flex items-center gap-2"><span class="text-green-500">✓</span> ${plan.interval === 'year' ? '연간 결제로 12,000원 절약' : '자동갱신 없음 · 만료 후 재결제'}</li>
+                  <li class="flex items-center gap-2"><span class="text-green-500">✓</span> ${plan.interval === 'year' ? '1년 결제로 12,000원 절약' : '자동갱신 없음 · 만료 후 재결제'}</li>
                 </ul>
                 <button onclick="state.page='login';render()" class="w-full py-3 ${plan.is_popular ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-500/20' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} rounded-xl font-semibold transition-all">시작하기</button>
               </div>
@@ -1106,12 +1106,12 @@ const renderSubscription = () => {
                   <span class="text-3xl font-extrabold text-indigo-600">${plan.price.toLocaleString()}</span>
                   <span class="text-gray-500 text-sm">원 / ${plan.interval === 'month' ? '월' : '년'}</span>
                 </div>
-                ${plan.interval === 'year' ? '<p class="text-xs text-gray-400 mb-4">월 5,000원 꼴 · 연간 12,000원 절약</p>' : ''}
+                ${plan.interval === 'year' ? '<p class="text-xs text-gray-400 mb-4">월 5,000원 꼴 · 1년에 12,000원 절약</p>' : ''}
                 <ul class="text-sm text-gray-600 space-y-2 mb-6 flex-1">
                   <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>복서방 시리즈 전체 이용</li>
                   <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>AI 관찰일지 자동 작성</li>
                   <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>기록지·계획서 자동화</li>
-                  <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>${plan.interval === 'year' ? '연간 결제로 12,000원 절약' : '자동갱신 없음 · 만료 후 재결제'}</li>
+                  <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span>${plan.interval === 'year' ? '1년 결제로 12,000원 절약' : '자동갱신 없음 · 만료 후 재결제'}</li>
                 </ul>
                 <button onclick="startPayment('${plan.id}')" id="btn-${plan.id}" class="w-full py-3 rounded-xl font-semibold text-sm ${plan.is_popular ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-500/20' : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700'} transition-all">💳 ${plan.name} 결제</button>
               </div>
@@ -1333,7 +1333,7 @@ const renderMyPage = () => {
         <div class="space-y-3">
           ${payments.map(p => {
             const date = p.paid_at ? new Date(p.paid_at).toLocaleDateString('ko-KR') : '-';
-            const planName = p.plan_id === 'monthly' ? '월간' : p.plan_id === 'yearly' ? '연간' : (p.plan_id || '-');
+            const planName = p.plan_id === 'monthly' ? '1개월' : p.plan_id === 'yearly' ? '12개월' : (p.plan_id || '-');
             const amount = p.amount ? p.amount.toLocaleString() + '원' : '-';
             const statusCls = p.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600';
             const statusText = p.status === 'paid' ? '결제완료' : p.status || '-';
@@ -2268,7 +2268,7 @@ const renderAdminPlans = () => {
                 <td class="px-3 py-2 font-mono text-xs">${p.id}</td>
                 <td class="px-3 py-2 font-medium">${p.name}</td>
                 <td class="px-3 py-2 text-right">${(p.price || 0).toLocaleString()}원</td>
-                <td class="px-3 py-2">${p.interval === 'month' ? '월간' : p.interval === 'year' ? '연간' : (p.interval || '-')}</td>
+                <td class="px-3 py-2">${p.interval === 'month' ? '1개월' : p.interval === 'year' ? '12개월' : (p.interval || '-')}</td>
                 <td class="px-3 py-2 text-center cursor-pointer" onclick="togglePlanField('${p.id}', 'is_popular', ${!p.is_popular})">${p.is_popular ? '⭐' : '☆'}</td>
                 <td class="px-3 py-2 text-center cursor-pointer" onclick="togglePlanField('${p.id}', 'is_active', ${!p.is_active})">${p.is_active ? '<span class="text-green-600">✅</span>' : '<span class="text-gray-400">⬜</span>'}</td>
                 <td class="px-3 py-2 text-xs text-gray-500 hidden md:table-cell">${p.description || '-'}</td>
@@ -2305,7 +2305,7 @@ const showPlanModal = (planId) => {
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">상품명 *</label>
-              <input id="planModalName" class="w-full px-4 py-2 border rounded-lg" value="${plan?.name || ''}" placeholder="월간 구독">
+              <input id="planModalName" class="w-full px-4 py-2 border rounded-lg" value="${plan?.name || ''}" placeholder="1개월 이용권">
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">가격 (원) *</label>
@@ -2314,8 +2314,8 @@ const showPlanModal = (planId) => {
             <div>
               <label class="block text-sm font-medium mb-1">결제 주기 *</label>
               <select id="planModalInterval" class="w-full px-4 py-2 border rounded-lg">
-                <option value="month" ${plan?.interval === 'month' ? 'selected' : ''}>월간 (month)</option>
-                <option value="year" ${plan?.interval === 'year' ? 'selected' : ''}>연간 (year)</option>
+                <option value="month" ${plan?.interval === 'month' ? 'selected' : ''}>1개월 (month)</option>
+                <option value="year" ${plan?.interval === 'year' ? 'selected' : ''}>12개월 (year)</option>
               </select>
             </div>
             <div>
@@ -2783,9 +2783,9 @@ const showSubscriptionAlert = (daysLeft, subscriptionEnd) => {
         <span style="color:#6b7280;font-size:13px;">만료일: ${subscriptionEnd}</span>
       </p>
       <div style="background:#eef2ff;border-radius:12px;padding:16px;margin-bottom:20px;text-align:left;">
-        <p style="font-size:14px;color:#4338ca;font-weight:600;margin-bottom:8px;">구독을 연장하시면 서비스를 계속 이용할 수 있습니다.</p>
-        <p style="font-size:15px;color:#4338ca;margin-bottom:4px;">💎 <strong>월간 6,000원 / 연간 60,000원</strong></p>
-        <p style="font-size:13px;color:#6366f1;">카드 결제로 간편하게 구독하세요!</p>
+        <p style="font-size:14px;color:#4338ca;font-weight:600;margin-bottom:8px;">이용권을 구매하시면 서비스를 계속 이용할 수 있습니다.</p>
+        <p style="font-size:15px;color:#4338ca;margin-bottom:4px;">💎 <strong>1개월 6,000원 / 12개월 60,000원</strong></p>
+        <p style="font-size:13px;color:#6366f1;">카드 결제로 간편하게 이용권을 구매하세요!</p>
       </div>
       <div style="display:flex;gap:8px;justify-content:center;">
         <button onclick="document.getElementById('subscriptionAlertModal').remove();state.tab='subscription';render()"
