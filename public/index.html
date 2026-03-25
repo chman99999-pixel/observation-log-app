@@ -1684,13 +1684,32 @@ const renderAdmin = () => {
   }
 };
 
+// 대시보드 날짜 선택 상태
+if (!state.dashboardDate) state.dashboardDate = new Date().toISOString().split('T')[0];
+
+const changeDashboardDate = (dateStr) => {
+  state.dashboardDate = dateStr;
+  // 대시보드만 다시 렌더링
+  (async () => {
+    await ensureAdminStats();
+    const s = getStats();
+    const el = document.getElementById('adminTabContent');
+    if (el) el.innerHTML = renderDashboard(s, state.users || []);
+  })();
+};
+
 const renderDashboard = (stats, users) => {
-  const today = new Date().toLocaleDateString('ko-KR');
-  const todayLogs = state.logs.filter(l => l.date === today);
+  const selectedDate = state.dashboardDate || new Date().toISOString().split('T')[0];
+  const [y, m, d] = selectedDate.split('-').map(Number);
+  const dateKR = `${y}. ${m}. ${d}.`;
+  const isToday = selectedDate === new Date().toISOString().split('T')[0];
+  const dateLabel = isToday ? '금일' : `${m}/${d}`;
+
+  const dateLogs = state.logs.filter(l => l.date === dateKR);
 
   const userUsage = users.map(u => ({
     name: u.name,
-    count: todayLogs.filter(l => l.user_id === u.id).length
+    count: dateLogs.filter(l => l.user_id === u.id).length
   })).filter(u => u.count > 0).sort((a, b) => b.count - a.count);
 
   const totalSub = stats.activeCount + stats.expiredCount;
@@ -1704,7 +1723,15 @@ const renderDashboard = (stats, users) => {
 
   return `
     <div class="space-y-6">
-      <h2 class="text-lg font-bold">📊 통계 현황</h2>
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <h2 class="text-lg font-bold">📊 통계 현황</h2>
+        <div class="flex items-center gap-2">
+          <button onclick="changeDashboardDate(new Date(new Date('${selectedDate}').getTime() - 86400000).toISOString().split('T')[0])" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm">◀</button>
+          <input type="date" value="${selectedDate}" max="${new Date().toISOString().split('T')[0]}" onchange="changeDashboardDate(this.value)" class="px-3 py-1.5 border rounded-lg text-sm">
+          <button onclick="changeDashboardDate(new Date(new Date('${selectedDate}').getTime() + 86400000).toISOString().split('T')[0])" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm" ${isToday ? 'disabled style="opacity:0.3"' : ''}>▶</button>
+          ${!isToday ? '<button onclick="changeDashboardDate(new Date().toISOString().split(\'T\')[0])" class="px-3 py-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded text-sm font-medium">오늘</button>' : ''}
+        </div>
+      </div>
 
       <!-- Row 1: 기존 3 stat cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1721,8 +1748,8 @@ const renderDashboard = (stats, users) => {
           <div class="flex items-center gap-3">
             <span class="text-3xl">🟢</span>
             <div>
-              <p class="text-sm text-green-600">금일 접속자</p>
-              <p class="text-3xl font-bold text-green-800">${stats.todayActiveUsers}명</p>
+              <p class="text-sm text-green-600">${dateLabel} 접속자</p>
+              <p class="text-3xl font-bold text-green-800">${new Set(dateLogs.map(l => l.user_id)).size}명</p>
             </div>
           </div>
         </div>
@@ -1730,8 +1757,8 @@ const renderDashboard = (stats, users) => {
           <div class="flex items-center gap-3">
             <span class="text-3xl">📝</span>
             <div>
-              <p class="text-sm text-purple-600">금일 변환 횟수</p>
-              <p class="text-3xl font-bold text-purple-800">${stats.todayConversions}회</p>
+              <p class="text-sm text-purple-600">${dateLabel} 변환 횟수</p>
+              <p class="text-3xl font-bold text-purple-800">${dateLogs.length}회</p>
             </div>
           </div>
         </div>
@@ -1809,9 +1836,9 @@ const renderDashboard = (stats, users) => {
         </div>
       </div>
 
-      <!-- Row 5: 금일 사용 현황 차트 -->
+      <!-- Row 5: 날짜별 사용 현황 차트 -->
       <div class="bg-gray-50 rounded-xl p-4">
-        <h3 class="font-semibold mb-3">📈 금일 사용 현황</h3>
+        <h3 class="font-semibold mb-3">📈 ${dateLabel} 사용 현황</h3>
         ${userUsage.length > 0 ? `
           <div class="space-y-2">
             ${userUsage.map(u => `
@@ -1824,7 +1851,7 @@ const renderDashboard = (stats, users) => {
               </div>
             `).join('')}
           </div>
-        ` : '<p class="text-gray-500 text-center py-4">오늘 사용 기록이 없습니다.</p>'}
+        ` : `<p class="text-gray-500 text-center py-4">${isToday ? '오늘' : dateKR} 사용 기록이 없습니다.</p>`}
       </div>
     </div>
   `;
