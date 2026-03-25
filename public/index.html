@@ -1684,8 +1684,11 @@ const renderAdmin = () => {
   }
 };
 
+// KST(한국 시간) 기준 오늘 날짜를 YYYY-MM-DD 형식으로 반환
+const todayKST = () => new Date().toLocaleDateString('sv-SE', {timeZone: 'Asia/Seoul'});
+
 // 대시보드 날짜 선택 상태
-if (!state.dashboardDate) state.dashboardDate = new Date().toISOString().split('T')[0];
+if (!state.dashboardDate) state.dashboardDate = todayKST();
 
 const changeDashboardDate = (dateStr) => {
   state.dashboardDate = dateStr;
@@ -1699,10 +1702,10 @@ const changeDashboardDate = (dateStr) => {
 };
 
 const renderDashboard = (stats, users) => {
-  const selectedDate = state.dashboardDate || new Date().toISOString().split('T')[0];
+  const selectedDate = state.dashboardDate || todayKST();
   const [y, m, d] = selectedDate.split('-').map(Number);
   const dateKR = `${y}. ${m}. ${d}.`;
-  const isToday = selectedDate === new Date().toISOString().split('T')[0];
+  const isToday = selectedDate === todayKST();
   const dateLabel = isToday ? '금일' : `${m}/${d}`;
 
   const dateLogs = state.logs.filter(l => l.date === dateKR);
@@ -1726,10 +1729,10 @@ const renderDashboard = (stats, users) => {
       <div class="flex items-center justify-between flex-wrap gap-3">
         <h2 class="text-lg font-bold">📊 통계 현황</h2>
         <div class="flex items-center gap-2">
-          <button onclick="changeDashboardDate(new Date(new Date('${selectedDate}').getTime() - 86400000).toISOString().split('T')[0])" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm">◀</button>
-          <input type="date" value="${selectedDate}" max="${new Date().toISOString().split('T')[0]}" onchange="changeDashboardDate(this.value)" class="px-3 py-1.5 border rounded-lg text-sm">
-          <button onclick="changeDashboardDate(new Date(new Date('${selectedDate}').getTime() + 86400000).toISOString().split('T')[0])" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm" ${isToday ? 'disabled style="opacity:0.3"' : ''}>▶</button>
-          ${!isToday ? '<button onclick="changeDashboardDate(new Date().toISOString().split(\'T\')[0])" class="px-3 py-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded text-sm font-medium">오늘</button>' : ''}
+          <button onclick="changeDashboardDate(new Date(new Date('${selectedDate}').getTime() - 86400000).toLocaleDateString('sv-SE', {timeZone: 'Asia/Seoul'}))" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm">◀</button>
+          <input type="date" value="${selectedDate}" max="${todayKST()}" onchange="changeDashboardDate(this.value)" class="px-3 py-1.5 border rounded-lg text-sm">
+          <button onclick="changeDashboardDate(new Date(new Date('${selectedDate}').getTime() + 86400000).toLocaleDateString('sv-SE', {timeZone: 'Asia/Seoul'}))" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm" ${isToday ? 'disabled style="opacity:0.3"' : ''}>▶</button>
+          ${!isToday ? '<button onclick="changeDashboardDate(todayKST())" class="px-3 py-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded text-sm font-medium">오늘</button>' : ''}
         </div>
       </div>
 
