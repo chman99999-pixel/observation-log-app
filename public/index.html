@@ -2997,7 +2997,17 @@ const _handleSocialLoginResult = async (provider, providerId, email, name) => {
       body: JSON.stringify({ provider, providerId, email, name })
     });
     const data = await res.json();
-    if (!res.ok) { _hideSocialLoading(); alert(data.error || `${provider} 로그인에 실패했습니다.`); return; }
+    if (!res.ok) {
+      _hideSocialLoading();
+      if (res.status === 403 && data.error === 'subscription_expired') {
+        alert('이용 기간이 만료되었습니다.\n\n계속 이용하시려면 로그인 후 요금제 페이지에서 결제해주세요.');
+      } else if (res.status === 409) {
+        alert(data.error || '이미 가입된 계정입니다. 기존 계정으로 로그인해주세요.');
+      } else {
+        alert(data.error || `${provider} 로그인에 실패했습니다.`);
+      }
+      return;
+    }
     saveAuthToken(data.token);
     state.user = data.user;
     state.page = 'app';

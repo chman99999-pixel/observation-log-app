@@ -5,6 +5,16 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-me';
 
+// 구독 만료 체크 헬퍼
+const checkSubscriptionExpired = (user) => {
+  if (user.role === 'admin') return false;
+  if (!user.subscription_end) return false;
+  const expireDate = new Date(user.subscription_end);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return expireDate < today;
+};
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -152,21 +162,22 @@ export default async function handler(req, res) {
         .eq('provider', provider).eq('provider_id', providerId).single();
 
       if (byProvider) {
+        if (checkSubscriptionExpired(byProvider)) {
+          return res.status(403).json({ error: 'subscription_expired', subscription_end: byProvider.subscription_end });
+        }
         const token = createToken(byProvider);
         return res.status(200).json({ token, user: sanitizeUser(byProvider) });
       }
 
-      // 2. email로 기존 사용자 검색 → 계정 연결
+      // 2. email로 기존 사용자 검색 → 기존 계정으로 로그인 (provider 유지)
       if (email) {
         const { data: byEmail } = await supabase
           .from('users').select('*').eq('email', email).single();
 
         if (byEmail) {
-          await supabase.from('users')
-            .update({ provider, provider_id: providerId })
-            .eq('id', byEmail.id);
-          byEmail.provider = provider;
-          byEmail.provider_id = providerId;
+          if (checkSubscriptionExpired(byEmail)) {
+            return res.status(403).json({ error: 'subscription_expired', subscription_end: byEmail.subscription_end });
+          }
           const token = createToken(byEmail);
           return res.status(200).json({ token, user: sanitizeUser(byEmail) });
         }
@@ -240,6 +251,16 @@ export default async function handler(req, res) {
 
       if (existingEmail) {
         return res.status(409).json({ error: '이미 사용 중인 이메일입니다.' });
+      }
+
+      // 휴대폰 번호 중복 체크
+      const cleanPhone = phone.replace(/-/g, '');
+      if (cleanPhone) {
+        const { data: existingPhone } = await supabase
+          .from('users').select('id').eq('phone', cleanPhone).single();
+        if (existingPhone) {
+          return res.status(409).json({ error: '이미 등록된 휴대폰 번호입니다. 기존 계정으로 로그인해주세요.' });
+        }
       }
 
       // 무료체험 10일
