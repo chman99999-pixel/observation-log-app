@@ -1956,8 +1956,11 @@ const renderLogs = (filteredLogs, users, organizations) => {
 const getSubLabel = (u) => {
   // adminStats에서 실제 구독 상태 조회
   const subs = state.adminStats?.subscriptions || [];
-  const userSub = subs
-    .filter(s => s.user_id === u.id)
+  const userSubs = subs.filter(s => s.user_id === u.id);
+  // active/trial 구독을 우선 선택, 없으면 최신 레코드
+  const activeSub = userSubs.filter(s => s.status === 'active' || s.status === 'trial')
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+  const userSub = activeSub || userSubs
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
 
   if (userSub) {
