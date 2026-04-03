@@ -1964,9 +1964,10 @@ const getSubLabel = (u) => {
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
 
   if (userSub) {
-    // end_date: subscriptions 테이블 우선, 없으면 users.subscription_end 폴백
-    const endStr = userSub.end_date || u.subscription_end;
-    const end = endStr ? new Date(endStr) : null;
+    // subscriptions.end_date와 users.subscription_end 중 더 먼 미래 날짜 사용
+    const subEnd = userSub.end_date ? new Date(userSub.end_date) : null;
+    const userEnd = u.subscription_end ? new Date(u.subscription_end) : null;
+    const end = (subEnd && userEnd) ? (subEnd > userEnd ? subEnd : userEnd) : (subEnd || userEnd);
     const days = end ? Math.ceil((end - new Date()) / 86400000) : 0;
     const statusMap = {
       'active': { text: '구독중', cls: 'bg-green-100 text-green-700' },
