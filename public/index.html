@@ -864,6 +864,10 @@ const getTodayUsageCount = (userId = null) => {
 
 const render = () => {
   if (!state.dataLoaded) return;
+  // 현재 탭 저장 (새로고침 복원용)
+  if (state.user && state.page === 'app') {
+    sessionStorage.setItem('lastTab', state.tab);
+  }
   const app = document.getElementById('app');
   if(!state.user) {
     if (state.page === 'landing') { renderLanding(); return; }
@@ -3658,7 +3662,7 @@ const restoreSession = async () => {
       const data = await res.json();
       state.user = data.user;
       state.page = 'app';
-      state.tab = 'hub';
+      state.tab = sessionStorage.getItem('lastTab') || 'hub';
     } else {
       authToken = null;
       sessionStorage.removeItem('authToken');
