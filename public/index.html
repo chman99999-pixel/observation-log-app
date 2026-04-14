@@ -2612,6 +2612,12 @@ const showMsg = (text, type = 'error') => {
   };
   const c = colors[type] || colors.error;
 
+  const kakaoBtn = type === 'error' ? `
+    <a href="https://open.kakao.com/o/s5kfbnqi" target="_blank"
+      style="display:block;margin-top:10px;padding:12px 40px;background:#FEE500;color:#191919;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;width:100%;text-decoration:none;box-sizing:border-box;">
+      💬 카카오톡으로 문의하기
+    </a>` : '';
+
   const overlay = document.createElement('div');
   overlay.id = '__showMsg';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;box-sizing:border-box;';
@@ -2622,6 +2628,7 @@ const showMsg = (text, type = 'error') => {
       <div style="font-size:17px;color:#1f2937;line-height:1.7;word-break:keep-all;white-space:pre-line;">${text}</div>
       <button onclick="document.getElementById('__showMsg').remove()"
         style="margin-top:24px;padding:12px 40px;background:${c.titleColor};color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;width:100%;">확인</button>
+      ${kakaoBtn}
     </div>
   `;
   overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
