@@ -2605,7 +2605,8 @@ const getPlanInfo = (planId) => {
 };
 
 // 결제 전 필수 정보(이메일/전화번호) 수집 모달
-const showRequiredInfoModal = ({ needEmail, needPhone }) => {
+// serverError: 서버 저장 실패 시 모달 내 에러 표시용
+const showRequiredInfoModal = ({ needEmail, needPhone, serverError = null }) => {
   return new Promise((resolve) => {
     const modal = document.createElement('div');
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
@@ -2613,7 +2614,8 @@ const showRequiredInfoModal = ({ needEmail, needPhone }) => {
     modal.innerHTML = `
       <div style="background:#fff;border-radius:16px;padding:32px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
         <h2 style="font-size:18px;font-weight:700;color:#1f2937;margin-bottom:8px;">📋 결제 전 필수 정보 입력</h2>
-        <p style="font-size:14px;color:#6b7280;margin-bottom:20px;">결제를 진행하기 위해 아래 정보를 입력해 주세요.</p>
+        <p style="font-size:14px;color:#6b7280;margin-bottom:${serverError ? '10px' : '20px'};">결제를 진행하기 위해 아래 정보를 입력해 주세요.</p>
+        ${serverError ? `<p style="background:#fef2f2;color:#dc2626;font-size:13px;padding:10px 14px;border-radius:10px;margin-bottom:16px;">⚠️ ${serverError}</p>` : ''}
         ${needEmail ? `
           <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">이메일 *</label>
           <input id="reqEmail" type="email" inputmode="email"
@@ -2715,37 +2717,39 @@ const startPayment = async (planType) => {
     return;
   }
 
-  // 결제 필수 정보 확인: 이메일·전화번호 없으면 통합 모달로 수집
-  const needEmail = !state.user.email;
-  const needPhone = !state.user.phone;
+  // 결제 필수 정보 확인: 이메일·전화번호 없으면 통합 모달로 수집 (저장 실패 시 재입력)
+  let needEmail = !state.user.email;
+  let needPhone = !state.user.phone;
 
   if (needEmail || needPhone) {
-    const result = await showRequiredInfoModal({ needEmail, needPhone });
-    if (!result) return; // 취소 시 결제 중단
+    let serverError = null;
+    while (true) {
+      const result = await showRequiredInfoModal({ needEmail, needPhone, serverError });
+      if (!result) return; // 취소 시 결제 중단
 
-    try {
-      const saveRes = await fetch('/api/db?action=updateProfile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(result),
-      });
+      try {
+        const saveRes = await fetch('/api/db?action=updateProfile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+          },
+          body: JSON.stringify(result),
+        });
 
-      const saveData = await saveRes.json().catch(() => ({}));
-      if (!saveRes.ok) {
-        const msg = saveData.error || '정보 저장에 실패했습니다.';
-        alert(msg);
-        return;
+        const saveData = await saveRes.json().catch(() => ({}));
+        if (!saveRes.ok) {
+          serverError = saveData.error || '정보 저장에 실패했습니다. 다시 시도해주세요.';
+          continue; // 모달 다시 열기
+        }
+
+        if (result.email) state.user.email = result.email;
+        if (result.phone) state.user.phone = result.phone;
+        break; // 저장 성공 시 루프 종료
+      } catch (err) {
+        console.error('Required info save error:', err);
+        serverError = '서버 연결 중 오류가 발생했습니다. 다시 시도해주세요.';
       }
-
-      if (result.email) state.user.email = result.email;
-      if (result.phone) state.user.phone = result.phone;
-    } catch (err) {
-      console.error('Required info save error:', err);
-      alert('정보 저장 중 오류가 발생했습니다.');
-      return;
     }
   }
 
