@@ -2733,8 +2733,10 @@ const startPayment = async (planType) => {
         body: JSON.stringify(result),
       });
 
+      const saveData = await saveRes.json().catch(() => ({}));
       if (!saveRes.ok) {
-        alert('정보 저장에 실패했습니다. 다시 시도해주세요.');
+        const msg = saveData.error || '정보 저장에 실패했습니다.';
+        alert(msg);
         return;
       }
 
