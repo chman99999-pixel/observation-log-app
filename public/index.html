@@ -1390,9 +1390,9 @@ const updateProfile = async () => {
   const phone = document.getElementById('profilePhone').value.trim();
   const organization = document.getElementById('profileOrg').value.trim();
 
-  if (!name) { alert('이름은 필수입니다.'); return; }
+  if (!name) { showMsg('이름은 필수입니다.'); return; }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    alert('올바른 이메일 형식이 아닙니다.'); return;
+    showMsg('올바른 이메일 형식이 아닙니다.'); return;
   }
 
   try {
@@ -1409,9 +1409,9 @@ const updateProfile = async () => {
     state.user.phone = phone;
     state.user.organization = organization;
 
-    alert('개인정보가 수정되었습니다. ✅');
+    showMsg('개인정보가 수정되었습니다.', 'success');
   } catch (error) {
-    alert('수정 실패: ' + (error.message || '오류가 발생했습니다.'));
+    showMsg('수정 실패: ' + (error.message || '오류가 발생했습니다.'));
   }
 };
 
@@ -1421,13 +1421,13 @@ const changePassword = async () => {
   const confirmPassword = document.getElementById('confirmPw').value;
 
   if (!currentPassword || !newPassword) {
-    alert('현재 비밀번호와 새 비밀번호를 입력해주세요.'); return;
+    showMsg('현재 비밀번호와 새 비밀번호를 입력해주세요.'); return;
   }
   if (newPassword.length < 4) {
-    alert('새 비밀번호는 4자 이상이어야 합니다.'); return;
+    showMsg('새 비밀번호는 4자 이상이어야 합니다.'); return;
   }
   if (newPassword !== confirmPassword) {
-    alert('새 비밀번호가 일치하지 않습니다.'); return;
+    showMsg('새 비밀번호가 일치하지 않습니다.'); return;
   }
 
   try {
@@ -1439,12 +1439,12 @@ const changePassword = async () => {
     const result = await response.json();
     if (!response.ok) throw new Error(result.error);
 
-    alert('비밀번호가 변경되었습니다. ✅');
+    showMsg('비밀번호가 변경되었습니다.', 'success');
     document.getElementById('currentPw').value = '';
     document.getElementById('newPw').value = '';
     document.getElementById('confirmPw').value = '';
   } catch (error) {
-    alert('비밀번호 변경 실패: ' + (error.message || '오류가 발생했습니다.'));
+    showMsg('비밀번호 변경 실패: ' + (error.message || '오류가 발생했습니다.'));
   }
 };
 
@@ -2183,7 +2183,7 @@ const saveAiModel = async (model) => {
     state.aiModel = model;
     render();
   } catch (e) {
-    alert('설정 저장 실패: ' + e.message);
+    showMsg('설정 저장 실패: ' + e.message);
   }
 };
 
@@ -2417,7 +2417,7 @@ const savePlan = async (isEdit) => {
   const is_popular = document.getElementById('planModalPopular').checked;
   const is_active = document.getElementById('planModalActive').checked;
 
-  if (!id || !name || !price) return alert('ID, 상품명, 가격은 필수입니다.');
+  if (!id || !name || !price) return showMsg('ID, 상품명, 가격은 필수입니다.');
 
   const data = { id, name, price, interval, description, is_popular, is_active };
 
@@ -2433,7 +2433,7 @@ const savePlan = async (isEdit) => {
     closePlanModal();
     render();
   } catch (e) {
-    alert('저장 실패: ' + e.message);
+    showMsg('저장 실패: ' + e.message);
   }
 };
 
@@ -2444,7 +2444,7 @@ const togglePlanField = async (planId, field, value) => {
     if (plan) plan[field] = value;
     render();
   } catch (e) {
-    alert('변경 실패: ' + e.message);
+    showMsg('변경 실패: ' + e.message);
   }
 };
 
@@ -2455,7 +2455,7 @@ const deletePlan = async (planId) => {
     state.plans = state.plans.filter(p => p.id !== planId);
     render();
   } catch (e) {
-    alert('삭제 실패: ' + e.message);
+    showMsg('삭제 실패: ' + e.message);
   }
 };
 
@@ -2599,6 +2599,36 @@ const closeUserModal = () => {
 let PORTONE_STORE_ID = '';
 let PORTONE_CHANNEL_KEY = '';
 
+// 커스텀 알림 메시지 (alert 대체) - 화면 중앙, 큰 글자
+const showMsg = (text, type = 'error') => {
+  const existing = document.getElementById('__showMsg');
+  if (existing) existing.remove();
+
+  const colors = {
+    error:   { bg: '#fef2f2', border: '#fca5a5', icon: '⚠️', title: '오류', titleColor: '#dc2626' },
+    success: { bg: '#f0fdf4', border: '#86efac', icon: '✅', title: '완료', titleColor: '#16a34a' },
+    info:    { bg: '#eff6ff', border: '#93c5fd', icon: 'ℹ️', title: '안내', titleColor: '#2563eb' },
+    warning: { bg: '#fffbeb', border: '#fcd34d', icon: '📢', title: '알림', titleColor: '#d97706' },
+  };
+  const c = colors[type] || colors.error;
+
+  const overlay = document.createElement('div');
+  overlay.id = '__showMsg';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;box-sizing:border-box;';
+  overlay.innerHTML = `
+    <div style="background:${c.bg};border:2px solid ${c.border};border-radius:20px;padding:36px 32px;max-width:460px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,0.25);text-align:center;position:relative;">
+      <div style="font-size:48px;margin-bottom:12px;line-height:1;">${c.icon}</div>
+      <div style="font-size:18px;font-weight:700;color:${c.titleColor};margin-bottom:12px;">${c.title}</div>
+      <div style="font-size:17px;color:#1f2937;line-height:1.7;word-break:keep-all;white-space:pre-line;">${text}</div>
+      <button onclick="document.getElementById('__showMsg').remove()"
+        style="margin-top:24px;padding:12px 40px;background:${c.titleColor};color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;width:100%;">확인</button>
+    </div>
+  `;
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+  document.querySelector('#__showMsg button').focus();
+};
+
 const getPlanInfo = (planId) => {
   const plan = state.plans.find(p => p.id === planId);
   return plan ? { name: plan.name, price: plan.price } : null;
@@ -2696,24 +2726,24 @@ const showRequiredInfoModal = ({ needEmail, needPhone, serverError = null }) => 
 
 const startPayment = async (planType) => {
   if (!state.user) {
-    alert('로그인이 필요합니다.');
+    showMsg('로그인이 필요합니다.');
     return;
   }
 
   if (!window.PortOne) {
-    alert('결제 모듈을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+    showMsg('결제 모듈을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
     return;
   }
 
   if (!PORTONE_STORE_ID || !PORTONE_CHANNEL_KEY) {
-    alert('결제 설정이 완료되지 않았습니다. 관리자에게 문의해주세요.');
+    showMsg('결제 설정이 완료되지 않았습니다. 관리자에게 문의해주세요.');
     console.error('PortOne config missing: storeId=', PORTONE_STORE_ID, 'channelKey=', PORTONE_CHANNEL_KEY);
     return;
   }
 
   const plan = getPlanInfo(planType);
   if (!plan) {
-    alert('유효하지 않은 요금제입니다.');
+    showMsg('유효하지 않은 요금제입니다.');
     return;
   }
 
@@ -2783,11 +2813,12 @@ const startPayment = async (planType) => {
     // 사용자가 결제창을 닫은 경우
     if (paymentResponse.code != null) {
       console.log('결제 취소/실패:', paymentResponse.code, paymentResponse.message);
-      if (paymentResponse.code === 'USER_CANCEL') {
-        // 사용자 취소 - 조용히 처리
-      } else {
-        alert(`결제 오류: ${paymentResponse.message || '알 수 없는 오류'}`);
+      const isCancelled = paymentResponse.code === 'USER_CANCEL' ||
+        (paymentResponse.message || '').includes('취소');
+      if (!isCancelled) {
+        showMsg(`결제 오류: ${paymentResponse.message || '알 수 없는 오류'}`);
       }
+      // 사용자 취소 - 조용히 처리
       return;
     }
 
@@ -2815,7 +2846,7 @@ const startPayment = async (planType) => {
 
   } catch (error) {
     console.error('결제 오류:', error);
-    alert(`결제 처리 중 오류가 발생했습니다.\n${error.message}`);
+    showMsg(`결제 처리 중 오류가 발생했습니다.\n${error.message}`);
   } finally {
     // 버튼 복원
     if (btn) {
@@ -2862,10 +2893,10 @@ const cancelSubscription = async () => {
     const result = await response.json();
     if (!response.ok) throw new Error(result.error);
 
-    alert(`구독이 해지되었습니다.\n${result.subscription_end}까지 서비스를 이용하실 수 있습니다.`);
+    showMsg(`구독이 해지되었습니다.\n${result.subscription_end}까지 서비스를 이용하실 수 있습니다.`, 'info');
     renderSubscription();
   } catch (error) {
-    alert(`구독 해지 중 오류: ${error.message}`);
+    showMsg(`구독 해지 중 오류: ${error.message}`);
   }
 };
 
@@ -3034,7 +3065,7 @@ const continueWithEmail = async () => {
     if (data.subscription_expired) {
       state.tab = 'subscription';
       render();
-      alert('이용 기간이 만료되었습니다.\n요금제를 선택하여 계속 이용하세요.');
+      showMsg('이용 기간이 만료되었습니다.\n요금제를 선택하여 계속 이용하세요.', 'warning');
     } else {
       state.tab = 'hub';
       render();
@@ -3117,9 +3148,9 @@ const _handleSocialLoginResult = async (provider, providerId, email, name) => {
     if (!res.ok) {
       _hideSocialLoading();
       if (res.status === 409) {
-        alert(data.error || '이미 가입된 계정입니다. 기존 계정으로 로그인해주세요.');
+        showMsg(data.error || '이미 가입된 계정입니다. 기존 계정으로 로그인해주세요.');
       } else {
-        alert(data.error || `${provider} 로그인에 실패했습니다.`);
+        showMsg(data.error || `${provider} 로그인에 실패했습니다.`);
       }
       return;
     }
@@ -3130,19 +3161,19 @@ const _handleSocialLoginResult = async (provider, providerId, email, name) => {
       state.tab = 'subscription';
       _hideSocialLoading();
       render();
-      alert('이용 기간이 만료되었습니다.\n요금제를 선택하여 계속 이용하세요.');
+      showMsg('이용 기간이 만료되었습니다.\n요금제를 선택하여 계속 이용하세요.', 'warning');
     } else {
       state.tab = 'hub';
       _hideSocialLoading();
       render();
     }
-  } catch (e) { _hideSocialLoading(); alert('서버 연결에 실패했습니다.'); }
+  } catch (e) { _hideSocialLoading(); showMsg('서버 연결에 실패했습니다.'); }
 };
 
 // ====== 카카오 로그인 (팝업) ======
 const loginWithKakao = () => {
   if (!window.Kakao || !Kakao.isInitialized()) {
-    alert('카카오 로그인 준비 중입니다. 잠시 후 다시 시도해주세요.');
+    showMsg('카카오 로그인 준비 중입니다. 잠시 후 다시 시도해주세요.');
     return;
   }
   // window.open을 일시적으로 오버라이드하여 팝업 크기 강제 지정
@@ -3168,7 +3199,7 @@ const loginWithKakao = () => {
           const providerId = String(kakaoUser.id);
           await _handleSocialLoginResult('kakao', providerId, email, name);
         },
-        fail: (err) => { console.error('Kakao user info error:', err); alert('카카오 사용자 정보를 가져올 수 없습니다.'); }
+        fail: (err) => { console.error('Kakao user info error:', err); showMsg('카카오 사용자 정보를 가져올 수 없습니다.'); }
       });
     },
     fail: (err) => { console.error('Kakao login failed:', err); }
@@ -3181,7 +3212,7 @@ let _googleTokenClient = null;
 const loginWithGoogle = () => {
   const clientId = state.appConfig?.googleClientId;
   if (!window.google?.accounts?.oauth2 || !clientId) {
-    alert('구글 로그인 준비 중입니다. 잠시 후 다시 시도해주세요.');
+    showMsg('구글 로그인 준비 중입니다. 잠시 후 다시 시도해주세요.');
     return;
   }
 
@@ -3192,7 +3223,7 @@ const loginWithGoogle = () => {
       callback: async (tokenResponse) => {
         if (tokenResponse.error) {
           console.error('Google OAuth error:', tokenResponse);
-          alert('구글 로그인에 실패했습니다.');
+          showMsg('구글 로그인에 실패했습니다.');
           return;
         }
         try {
@@ -3203,7 +3234,7 @@ const loginWithGoogle = () => {
           await _handleSocialLoginResult('google', userInfo.sub, userInfo.email, userInfo.name);
         } catch (e) {
           console.error('Google login error:', e);
-          alert('서버 연결에 실패했습니다.');
+          showMsg('서버 연결에 실패했습니다.');
         }
       }
     });
@@ -3269,11 +3300,11 @@ const restoreOptions = () => {
 const generate = async () => {
   const activity = document.getElementById('activity').value;
   const needAction = document.getElementById('needAction').checked;
-  if(!activity) return alert('활동내용을 입력해주세요.');
+  if(!activity) return showMsg('활동내용을 입력해주세요.');
 
   const todayUsage = getTodayUsageCount();
   if(todayUsage >= 7) {
-    alert('😊 오늘 사용 가능한 횟수(7회)를 모두 사용하셨습니다.\n\n내일 다시 이용해 주시면 감사하겠습니다.\n선생님의 노고에 항상 감사드립니다! 🙏');
+    showMsg('😊 오늘 사용 가능한 횟수(7회)를 모두 사용하셨습니다.\n\n내일 다시 이용해 주시면 감사하겠습니다.\n선생님의 노고에 항상 감사드립니다! 🙏', 'warning');
     return;
   }
 
@@ -3338,7 +3369,7 @@ const generate = async () => {
 };
 
 const regenerate = () => {
-  if(!lastActivity) return alert('이전 입력 내용이 없습니다.');
+  if(!lastActivity) return showMsg('이전 입력 내용이 없습니다.');
   document.getElementById('activity').value = lastActivity;
   document.getElementById('needAction').checked = lastNeedAction;
   restoreOptions();
@@ -3392,7 +3423,7 @@ const copyText = async(t, btn) => {
       setTimeout(() => btn.textContent = '📋복사', 2000);
     }
   } catch {
-    alert('복사실패');
+    showMsg('복사실패');
   }
 };
 
@@ -3404,7 +3435,7 @@ const copyObservation = async(btn) => {
       setTimeout(() => btn.textContent = '📋복사', 2000);
     }
   } catch {
-    alert('복사실패');
+    showMsg('복사실패');
   }
 };
 
@@ -3416,7 +3447,7 @@ const copyAction = async(btn) => {
       setTimeout(() => btn.textContent = '📋복사', 2000);
     }
   } catch {
-    alert('복사실패');
+    showMsg('복사실패');
   }
 };
   
@@ -3429,8 +3460,8 @@ const addUser = async() => {
   const phone = document.getElementById('modalUserPhone').value.trim();
   const expire = document.getElementById('modalUserExpire').value || '2026-02-20';
 
-  if(!id || !pw || !name) return alert('아이디, 비밀번호, 이름은 필수입니다.');
-  if(state.users.find(u => u.id === id)) return alert('이미 존재하는 아이디입니다.');
+  if(!id || !pw || !name) return showMsg('아이디, 비밀번호, 이름은 필수입니다.');
+  if(state.users.find(u => u.id === id)) return showMsg('이미 존재하는 아이디입니다.');
 
   await api('addUser', { id, password: pw, name, role: 'user', organization: org, email, phone, subscription_end: expire });
   state.users.push({ id, name, role: 'user', organization: org, email, phone, subscription_end: expire });
@@ -3456,7 +3487,7 @@ const updateUser = async() => {
       await api('updateSubscriptionStatus', { user_id: id, status: subStatus });
     } catch(e) {
       console.error('구독 상태 변경 실패:', e);
-      alert('구독 상태 변경에 실패했습니다: ' + (e.message || ''));
+      showMsg('구독 상태 변경에 실패했습니다: ' + (e.message || ''));
     }
   }
 
@@ -3496,7 +3527,7 @@ const resetUserUsage = async(userId, userName) => {
       state.logs = state.logs.filter(l => !ids.includes(l.id));
     }
     
-    alert(`${userName} 선생님의 오늘 사용량이 초기화되었습니다.`);
+    showMsg(`${userName} 선생님의 오늘 사용량이 초기화되었습니다.`, 'success');
     render();
   }
 };
@@ -3551,7 +3582,7 @@ const deleteOldLogs = async() => {
   });
 
   if (oldLogs.length === 0) {
-    alert('30일 이전 로그가 없습니다.');
+    showMsg('30일 이전 로그가 없습니다.');
     return;
   }
 
@@ -3563,9 +3594,9 @@ const deleteOldLogs = async() => {
       state.logs = state.logs.filter(l => !oldIds.includes(l.id));
       state.selectedLogs = [];
       render();
-      alert(`✅ ${oldLogs.length}건의 로그가 삭제되었습니다.`);
+      showMsg(`${oldLogs.length}건의 로그가 삭제되었습니다.`, 'success');
     } catch(e) {
-      alert('삭제 중 오류가 발생했습니다: ' + e.message);
+      showMsg('삭제 중 오류가 발생했습니다: ' + e.message);
     }
   }
 };
