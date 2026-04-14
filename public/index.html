@@ -1167,7 +1167,7 @@ const renderSubscription = () => {
             <li>• 이용권은 자동 갱신 없이 만료일에 종료됩니다.</li>
             <li>• 계속 이용하시려면 만료 후 새로 결제해 주세요.</li>
             <li>• 결제는 포트원을 통해 안전하게 처리됩니다.</li>
-            <li>• 결제 관련 문의: <strong>복서방 고객센터</strong></li>
+            <li>• 결제 관련 문의: <a href="https://open.kakao.com/o/s5kfbnqi" target="_blank" style="color:#4f46e5;font-weight:700;text-decoration:underline;">💬 복서방 고객센터 (카카오톡)</a></li>
           </ul>
           <div class="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400">
             <a href="/terms.html" class="underline hover:text-gray-600">이용약관</a> ·
@@ -2743,7 +2743,7 @@ const startPayment = async (planType) => {
   }
 
   if (!PORTONE_STORE_ID || !PORTONE_CHANNEL_KEY) {
-    showMsg('결제 설정이 완료되지 않았습니다. 관리자에게 문의해주세요.');
+    showMsg('결제 설정이 완료되지 않았습니다.\n카카오톡 고객센터로 문의해 주세요.');
     console.error('PortOne config missing: storeId=', PORTONE_STORE_ID, 'channelKey=', PORTONE_CHANNEL_KEY);
     return;
   }
