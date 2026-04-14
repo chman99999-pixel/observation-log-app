@@ -162,10 +162,10 @@ export default async function handler(req, res) {
         .eq('provider', provider).eq('provider_id', providerId).single();
 
       if (byProvider) {
-        if (checkSubscriptionExpired(byProvider)) {
-          return res.status(403).json({ error: 'subscription_expired', subscription_end: byProvider.subscription_end });
-        }
         const token = createToken(byProvider);
+        if (checkSubscriptionExpired(byProvider)) {
+          return res.status(200).json({ token, user: sanitizeUser(byProvider), subscription_expired: true });
+        }
         return res.status(200).json({ token, user: sanitizeUser(byProvider) });
       }
 
@@ -175,10 +175,10 @@ export default async function handler(req, res) {
           .from('users').select('*').eq('email', email).single();
 
         if (byEmail) {
-          if (checkSubscriptionExpired(byEmail)) {
-            return res.status(403).json({ error: 'subscription_expired', subscription_end: byEmail.subscription_end });
-          }
           const token = createToken(byEmail);
+          if (checkSubscriptionExpired(byEmail)) {
+            return res.status(200).json({ token, user: sanitizeUser(byEmail), subscription_expired: true });
+          }
           return res.status(200).json({ token, user: sanitizeUser(byEmail) });
         }
       }

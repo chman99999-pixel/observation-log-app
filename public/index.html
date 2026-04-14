@@ -2604,52 +2604,91 @@ const getPlanInfo = (planId) => {
   return plan ? { name: plan.name, price: plan.price } : null;
 };
 
-// 결제 전 휴대폰 번호 입력 모달 (소셜 로그인 사용자용)
-const showPhoneInputModal = () => {
+// 결제 전 필수 정보(이메일/전화번호) 수집 모달
+const showRequiredInfoModal = ({ needEmail, needPhone }) => {
   return new Promise((resolve) => {
     const modal = document.createElement('div');
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
     modal.onclick = (e) => { if (e.target === modal) { modal.remove(); resolve(null); } };
     modal.innerHTML = `
       <div style="background:#fff;border-radius:16px;padding:32px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-        <h2 style="font-size:18px;font-weight:700;color:#1f2937;margin-bottom:8px;">📱 전화번호 입력</h2>
-        <p style="font-size:14px;color:#6b7280;margin-bottom:16px;">결제를 진행하기 위해 전화번호가 필요합니다.</p>
-        <input id="phoneModalInput" type="tel" inputmode="numeric"
-          style="width:100%;padding:12px 16px;border:1px solid #d1d5db;border-radius:12px;font-size:16px;outline:none;box-sizing:border-box;"
-          placeholder="숫자만 입력하세요 (예: 01012345678)">
-        <p id="phoneModalError" style="color:#dc2626;font-size:13px;margin-top:6px;display:none;"></p>
-        <div style="display:flex;gap:8px;margin-top:16px;">
-          <button id="phoneModalCancel" style="flex:1;padding:12px;border:1px solid #d1d5db;border-radius:12px;font-size:14px;font-weight:600;background:#fff;cursor:pointer;">취소</button>
-          <button id="phoneModalSubmit" style="flex:1;padding:12px;border:none;border-radius:12px;font-size:14px;font-weight:600;background:#4f46e5;color:#fff;cursor:pointer;">확인</button>
+        <h2 style="font-size:18px;font-weight:700;color:#1f2937;margin-bottom:8px;">📋 결제 전 필수 정보 입력</h2>
+        <p style="font-size:14px;color:#6b7280;margin-bottom:20px;">결제를 진행하기 위해 아래 정보를 입력해 주세요.</p>
+        ${needEmail ? `
+          <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">이메일 *</label>
+          <input id="reqEmail" type="email" inputmode="email"
+            style="width:100%;padding:12px 16px;border:1px solid #d1d5db;border-radius:12px;font-size:15px;outline:none;box-sizing:border-box;"
+            placeholder="example@email.com">
+          <p id="reqEmailError" style="color:#dc2626;font-size:13px;margin-top:4px;display:none;"></p>
+        ` : ''}
+        ${needPhone ? `
+          <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-top:${needEmail ? '14px' : '0'};margin-bottom:4px;">전화번호 *</label>
+          <input id="reqPhone" type="tel" inputmode="numeric"
+            style="width:100%;padding:12px 16px;border:1px solid #d1d5db;border-radius:12px;font-size:15px;outline:none;box-sizing:border-box;"
+            placeholder="숫자만 입력 (예: 01012345678)">
+          <p id="reqPhoneError" style="color:#dc2626;font-size:13px;margin-top:4px;display:none;"></p>
+        ` : ''}
+        <div style="display:flex;gap:8px;margin-top:20px;">
+          <button id="reqCancel" style="flex:1;padding:12px;border:1px solid #d1d5db;border-radius:12px;font-size:14px;font-weight:600;background:#fff;cursor:pointer;">취소</button>
+          <button id="reqSubmit" style="flex:1;padding:12px;border:none;border-radius:12px;font-size:14px;font-weight:600;background:#4f46e5;color:#fff;cursor:pointer;">확인</button>
         </div>
       </div>
     `;
     document.body.appendChild(modal);
 
-    const input = document.getElementById('phoneModalInput');
-    const errorEl = document.getElementById('phoneModalError');
-    input.focus();
+    const emailInput = needEmail ? document.getElementById('reqEmail') : null;
+    const phoneInput = needPhone ? document.getElementById('reqPhone') : null;
+    const emailError = needEmail ? document.getElementById('reqEmailError') : null;
+    const phoneError = needPhone ? document.getElementById('reqPhoneError') : null;
 
-    input.addEventListener('input', () => {
-      input.value = input.value.replace(/[^0-9]/g, '');
-      errorEl.style.display = 'none';
-    });
+    if (emailInput) emailInput.focus();
+    else if (phoneInput) phoneInput.focus();
 
-    document.getElementById('phoneModalCancel').onclick = () => { modal.remove(); resolve(null); };
-    document.getElementById('phoneModalSubmit').onclick = () => {
-      const phone = input.value.trim().replace(/[^0-9]/g, '');
-      if (!/^01[016789]\d{7,8}$/.test(phone)) {
-        errorEl.textContent = '올바른 휴대폰 번호를 입력해주세요. (예: 01012345678)';
-        errorEl.style.display = 'block';
-        return;
+    if (phoneInput) {
+      phoneInput.addEventListener('input', () => {
+        phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '');
+        if (phoneError) phoneError.style.display = 'none';
+      });
+    }
+    if (emailInput) {
+      emailInput.addEventListener('input', () => {
+        if (emailError) emailError.style.display = 'none';
+      });
+    }
+
+    document.getElementById('reqCancel').onclick = () => { modal.remove(); resolve(null); };
+    document.getElementById('reqSubmit').onclick = () => {
+      const result = {};
+      if (needEmail) {
+        const email = emailInput.value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          emailError.textContent = '올바른 이메일 주소를 입력해주세요.';
+          emailError.style.display = 'block';
+          emailInput.focus();
+          return;
+        }
+        result.email = email;
+      }
+      if (needPhone) {
+        const phone = phoneInput.value.trim().replace(/[^0-9]/g, '');
+        if (!/^01[016789]\d{7,8}$/.test(phone)) {
+          phoneError.textContent = '올바른 휴대폰 번호를 입력해주세요. (예: 01012345678)';
+          phoneError.style.display = 'block';
+          phoneInput.focus();
+          return;
+        }
+        result.phone = phone;
       }
       modal.remove();
-      resolve(phone);
+      resolve(result);
     };
 
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') document.getElementById('phoneModalSubmit').click();
-    });
+    const lastInput = phoneInput || emailInput;
+    if (lastInput) {
+      lastInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('reqSubmit').click();
+      });
+    }
   });
 };
 
@@ -2676,10 +2715,13 @@ const startPayment = async (planType) => {
     return;
   }
 
-  // 소셜 로그인 사용자: 전화번호 없으면 입력 모달 표시
-  if (!state.user.phone) {
-    const phone = await showPhoneInputModal();
-    if (!phone) return; // 취소 시 결제 중단
+  // 결제 필수 정보 확인: 이메일·전화번호 없으면 통합 모달로 수집
+  const needEmail = !state.user.email;
+  const needPhone = !state.user.phone;
+
+  if (needEmail || needPhone) {
+    const result = await showRequiredInfoModal({ needEmail, needPhone });
+    if (!result) return; // 취소 시 결제 중단
 
     try {
       const saveRes = await fetch('/api/db?action=updateProfile', {
@@ -2688,18 +2730,19 @@ const startPayment = async (planType) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify(result),
       });
 
       if (!saveRes.ok) {
-        alert('전화번호 저장에 실패했습니다. 다시 시도해주세요.');
+        alert('정보 저장에 실패했습니다. 다시 시도해주세요.');
         return;
       }
 
-      state.user.phone = phone;
+      if (result.email) state.user.email = result.email;
+      if (result.phone) state.user.phone = result.phone;
     } catch (err) {
-      console.error('Phone save error:', err);
-      alert('전화번호 저장 중 오류가 발생했습니다.');
+      console.error('Required info save error:', err);
+      alert('정보 저장 중 오류가 발생했습니다.');
       return;
     }
   }
@@ -2973,10 +3016,6 @@ const continueWithEmail = async () => {
 
     if (!res.ok) {
       resetBtn();
-      if (data.error === 'subscription_expired') {
-        alert('😢 구독이 만료되었습니다.\n\n구독 연장을 원하시면 관리자에게 문의해주세요.');
-        return;
-      }
       errEl.textContent = data.error || '로그인에 실패했습니다.';
       errEl.classList.remove('hidden');
       return;
@@ -2986,8 +3025,14 @@ const continueWithEmail = async () => {
     saveAuthToken(data.token);
     state.user = data.user;
     state.page = 'app';
-    state.tab = 'hub';
-    render();
+    if (data.subscription_expired) {
+      state.tab = 'subscription';
+      render();
+      alert('이용 기간이 만료되었습니다.\n요금제를 선택하여 계속 이용하세요.');
+    } else {
+      state.tab = 'hub';
+      render();
+    }
 
     const daysLeft = getSubscriptionDaysLeft(data.user);
     if (daysLeft !== null && daysLeft <= 3) {
@@ -3065,9 +3110,7 @@ const _handleSocialLoginResult = async (provider, providerId, email, name) => {
     const data = await res.json();
     if (!res.ok) {
       _hideSocialLoading();
-      if (res.status === 403 && data.error === 'subscription_expired') {
-        alert('이용 기간이 만료되었습니다.\n\n계속 이용하시려면 로그인 후 요금제 페이지에서 결제해주세요.');
-      } else if (res.status === 409) {
+      if (res.status === 409) {
         alert(data.error || '이미 가입된 계정입니다. 기존 계정으로 로그인해주세요.');
       } else {
         alert(data.error || `${provider} 로그인에 실패했습니다.`);
@@ -3077,9 +3120,16 @@ const _handleSocialLoginResult = async (provider, providerId, email, name) => {
     saveAuthToken(data.token);
     state.user = data.user;
     state.page = 'app';
-    state.tab = 'hub';
-    _hideSocialLoading();
-    render();
+    if (data.subscription_expired) {
+      state.tab = 'subscription';
+      _hideSocialLoading();
+      render();
+      alert('이용 기간이 만료되었습니다.\n요금제를 선택하여 계속 이용하세요.');
+    } else {
+      state.tab = 'hub';
+      _hideSocialLoading();
+      render();
+    }
   } catch (e) { _hideSocialLoading(); alert('서버 연결에 실패했습니다.'); }
 };
 
