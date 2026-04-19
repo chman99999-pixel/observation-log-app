@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       // 3) 최신 사용자 정보 조회 (구독 상태 확인)
       const { data: user, error } = await supabase
         .from('users')
-        .select('id, name, role, organization, subscription_end, subscription_status')
+        .select('id, name, role, organization, subscription_end')
         .eq('id', authPayload.id)
         .single();
 
