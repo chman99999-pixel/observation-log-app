@@ -1,0 +1,14 @@
+# 복서방 — 복지인 서류해방 (bokji-ai.co.kr)
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# 네이버
+User-agent: Yeti
+Allow: /
+
+# 구글
+User-agent: Googlebot
+Allow: /
+
+Sitemap: https://www.bokji-ai.co.kr/sitemap.xml
