@@ -2674,7 +2674,6 @@ const renderUsers = (filteredUsers, organizations) => {
               <th class="px-3 py-3 text-left font-semibold">소속기관</th>
               <th class="px-3 py-3 text-left font-semibold hidden md:table-cell">이메일</th>
               <th class="px-3 py-3 text-left font-semibold hidden md:table-cell">전화번호</th>
-              <th class="px-3 py-3 text-left font-semibold hidden md:table-cell">등록일</th>
               <th class="px-3 py-3 text-left font-semibold">구독상태</th>
               <th class="px-3 py-3 text-left font-semibold">오늘 사용량</th>
               <th class="px-3 py-3 text-center font-semibold">관리</th>
@@ -2691,7 +2690,6 @@ const renderUsers = (filteredUsers, organizations) => {
                   <td class="px-3 py-3">${u.organization || '-'}</td>
                   <td class="px-3 py-3 text-gray-600 text-xs hidden md:table-cell">${u.email || '-'}</td>
                   <td class="px-3 py-3 text-gray-600 text-xs hidden md:table-cell">${u.phone || '-'}</td>
-                  <td class="px-3 py-3 text-gray-600 text-xs hidden md:table-cell">${u.created_at ? new Date(u.created_at).toLocaleDateString('ko-KR', {timeZone:'Asia/Seoul'}) : '-'}</td>
                   <td class="px-3 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-medium ${sub.cls}">${sub.text}</span>${u.subscription_end ? '<br><span class="text-xs text-gray-400">' + u.subscription_end + '</span>' : ''}</td>
                   <td class="px-3 py-3">
                     <div class="flex items-center gap-2">
