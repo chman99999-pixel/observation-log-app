@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   try {
     // 사용자 조회 (비밀번호 필드 제외)
     if (action === 'getUsers') {
-      const { data, error } = await supabase.from('users').select('id, name, role, organization, subscription_end, email, phone').order('name');
+      const { data, error } = await supabase.from('users').select('id, name, role, organization, subscription_end, email, phone, created_at').order('name');
       if (error) throw error;
       return res.status(200).json(data || []);
     }
