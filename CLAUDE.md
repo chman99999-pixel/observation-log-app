@@ -50,11 +50,14 @@ const MODEL_MAP = {
 - 기록지해방: https://jukgan-jaripdong-app-93jqyjotebw9s6ykzzncff.streamlit.app/
 - 계획서해방2: https://m83g448p3tjqw9tz9nszle.streamlit.app/
 
-## 관찰일지 말투 옵션
-- 기본 (default): 정형적, 체계적
-- 따뜻한 공감형 (warm): 감정/분위기 세심 묘사
-- 담백한 요약형 (concise): 짧은 문장, 사실 위주
-- 생동감 있는 서술형 (vivid): 구체적 동작, 직접 인용
+## 관찰일지 말투 옵션 (2026-06 재설계 — '관찰의 렌즈'로 차별화, 4종 모두 객관적 사실 기록)
+- 기본 (default): 시간순 종합 보고, 접속사로 매끄럽게 연결
+- 상세 관찰형 (detailed): 이용자의 동작을 단계별로 자세히, 직접 인용 없음
+- 수행 중심형 (support): 혼자 한 것/도움받은 것 중심, 전문용어 없이 일상어 (입력에 도움정보 있을 때만)
+- 생동감 있는 서술형 (vivid): 직접 인용 1회 제한 + 핵심 동작 묘사 (글자수 초과 방지)
+- 공통 원칙: ~하였습니다 경어체 강제(축약형 ~하였음 금지), 감정·느낌·분위기 추측 배제
+- 폐기: 따뜻한 공감형(warm), 담백한 요약형(concise) — 사용 빈도 낮고 차별화 약해 제거
+- ⚠️ 말투 추가/수정 시 api/generate.js TONE_MAP + index.html 라디오버튼(value)/작성예시 모달 3곳 동기화 필수
 
 ## 날짜 형식 주의
 - 로그 날짜는 `new Date().toLocaleDateString('ko-KR')` 형식으로 저장됨
