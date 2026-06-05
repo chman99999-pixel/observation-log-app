@@ -10,27 +10,28 @@
 - [ ] 입금 계좌/카카오페이 정보를 settings 테이블에 저장 (관리자 수정 가능, 하드코딩 X)
 - [ ] verify: 신청 레코드 생성/조회 테스트
 
-## Phase 2 — 백엔드 API
-- [ ] api/payment.js: requestDeposit (입금 신청 등록, status=pending)
-- [ ] api/payment.js: approveDeposit (관리자 확인 → 구독 기간 연장 + status=confirmed)
-- [ ] api/payment.js: rejectDeposit (반려)
-- [ ] 포트원 verify/webhook/portone.js 비활성화(삭제 금지, 보존)
-- [ ] verify: curl로 신청→승인→구독연장 확인
+## Phase 2 — 백엔드 API ✅ (커밋 a4f4270)
+- [x] api/payment.js: requestDeposit (입금 신청 등록, status=pending)
+- [x] api/payment.js: approveDeposit (관리자 확인 → 구독 기간 연장 + status=confirmed)
+- [x] api/payment.js: rejectDeposit (반려)
+- [x] 포트원 verify는 코드 보존 (프론트 호출만 Phase 3에서 비활성화)
+- [ ] verify: curl로 신청→승인→구독연장 확인 (Phase 1 SQL 실행 후)
 
-## Phase 3 — 사용자 화면 (index.html)
-- [ ] renderSubscription: "결제하기" → "입금하고 이용하기"
-- [ ] renderDepositGuide: 계좌/카카오페이 안내 + 복사버튼 + 금액 + 입금자명 안내
-- [ ] "입금 완료했어요" 버튼 → requestDeposit 호출
-- [ ] 신청 후 "확인 대기중" 상태 표시
-- [ ] 포트원 SDK 호출부(startPayment/requestPayment) 비활성화
-- [ ] verify: 신청 시 대기 상태 노출
+## Phase 3 — 사용자 화면 (index.html) ✅
+- [x] renderSubscription: "결제하기" → "입금하고 이용하기"
+- [x] showDepositGuide 모달: 계좌/카카오페이 안내 + 복사버튼 + 금액 + 입금자명 + 입금방법
+- [x] "입금 완료했어요" 버튼 → submitDeposit → requestDeposit 호출
+- [x] 신청 후 안내 토스트 (확인 대기 안내)
+- [x] 포트원 SDK 호출부 비활성화 (버튼이 showDepositGuide 호출, startPayment 보존)
+- [ ] (선택) 구독 페이지에 "확인 대기중" 배너 — 추후
+- [ ] verify: 신청 시 대기 상태 노출 (Phase 1 SQL 후)
 
-## Phase 4 — 관리자
-- [ ] 구독 관리 탭: "입금 신청 대기" 목록
-- [ ] "확인 & 활성화" / "반려" 버튼
-- [ ] 활성화 시 구독 기간 연장(월 +30일 / 연 +365일) + 매출 반영
-- [ ] 설정: 입금 계좌/카카오페이 정보 수정 UI
-- [ ] verify: 승인 시 구독 활성화 + 사용자 화면 반영 확인
+## Phase 4 — 관리자 ✅
+- [x] 구독 관리 탭: "입금 신청 대기" 목록 (pending payments)
+- [x] "확인 & 활성화"(approveDeposit) / "반려"(rejectDeposit) 버튼
+- [x] 활성화 시 구독 기간 연장(월 +30 / 연 +365) + 매출(confirmed 포함) 반영
+- [ ] (선택) 설정: 입금 계좌/카카오페이 수정 UI — 현재는 코드 fallback + settings로 처리, 추후 UI
+- [ ] verify: 승인 시 구독 활성화 + 사용자 화면 반영 확인 (Phase 1 SQL 후)
 
 ## Phase 5 — 운영/마무리
 - [ ] 만료 전 알림 (이메일/앱내 배너) 점검
