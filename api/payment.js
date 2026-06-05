@@ -249,10 +249,25 @@ export default async function handler(req, res) {
       const { data: plan } = await supabase.from('plans').select('*').eq('id', pay.plan_id).maybeSingle();
       if (!plan) return res.status(400).json({ error: '요금제 정보를 찾을 수 없습니다.' });
 
+      // 기존 활성/체험 구독의 만료일 확인 (남은 기간이 있으면 그 날짜부터 연장)
+      const { data: currentSub } = await supabase
+        .from('subscriptions')
+        .select('end_date')
+        .eq('user_id', pay.user_id)
+        .in('status', ['trial', 'active'])
+        .order('end_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
       const now = new Date();
-      const endDate = new Date(now);
-      if (plan.interval === 'year') endDate.setFullYear(endDate.getFullYear() + 1);
-      else endDate.setMonth(endDate.getMonth() + 1);
+      const todayStr = now.toISOString().split('T')[0];
+      // 구독이 아직 남아있으면 기존 만료일 기준, 만료/없으면 오늘 기준으로 기간 추가
+      const baseStr = (currentSub && currentSub.end_date && currentSub.end_date > todayStr)
+        ? currentSub.end_date
+        : todayStr;
+      const endDate = new Date(baseStr + 'T00:00:00Z');
+      if (plan.interval === 'year') endDate.setUTCFullYear(endDate.getUTCFullYear() + 1);
+      else endDate.setUTCMonth(endDate.getUTCMonth() + 1);
       const subscriptionEnd = endDate.toISOString().split('T')[0];
 
       // 기존 활성/체험 구독 종료 후 새 구독 활성화
