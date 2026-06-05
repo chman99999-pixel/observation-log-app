@@ -1459,6 +1459,34 @@ const render = () => {
   if(state.user.role === 'admin') { renderAdmin(); } else { renderUser(); }
 };
 
+// 구독 만료 임박/만료 시 상단 알림 배너 (D-7 이내)
+const renderExpiryBanner = () => {
+  const d = getSubscriptionDaysLeft(state.user);
+  if (d === null) return '';
+  const exp = state.user.subscription_end || '';
+  if (d <= 0) {
+    return `
+      <div class="mb-6 rounded-2xl border-2 border-red-300 bg-red-50 p-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="text-center sm:text-left">
+          <p class="font-bold text-red-700 text-base">🔴 구독이 만료되었습니다</p>
+          <p class="text-sm text-red-600 mt-0.5">계속 이용하시려면 입금 후 연장해 주세요.${exp ? ' (만료일: ' + exp + ')' : ''}</p>
+        </div>
+        <button onclick="state.tab='subscription';render()" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold text-sm whitespace-nowrap">지금 연장하기 →</button>
+      </div>`;
+  }
+  if (d <= 7) {
+    return `
+      <div class="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="text-center sm:text-left">
+          <p class="font-bold text-amber-700 text-base">⏰ 구독 만료 D-${d}</p>
+          <p class="text-sm text-amber-600 mt-0.5">${exp ? exp + '에 만료됩니다. ' : ''}미리 입금하고 연장하면 남은 기간에 이어서 더해집니다.</p>
+        </div>
+        <button onclick="state.tab='subscription';render()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold text-sm whitespace-nowrap">연장하기 →</button>
+      </div>`;
+  }
+  return '';
+};
+
 const renderHub = () => {
   const greet = (() => {
     const h = new Date().getHours(), n = state.user.name;
@@ -1503,6 +1531,8 @@ const renderHub = () => {
       </header>
 
       <div class="max-w-6xl mx-auto px-6 py-8">
+
+        ${renderExpiryBanner()}
 
         <!-- 히어로: 로고 크게 -->
         <div class="text-center mb-8">
@@ -2037,6 +2067,7 @@ const renderUser = () => {
           <div class="flex items-center gap-3"><span class="text-3xl">📝</span><h1 class="text-xl font-bold">일지해방</h1></div>
           <div class="flex items-center gap-2 flex-col sm:flex-row"><span class="text-sm">${getGreeting()}</span>${subBadge}<div class="flex gap-1"><button onclick="state.tab='hub';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">🏠 홈</button><button onclick="state.tab='mypage';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">👤</button><button onclick="state.tab='subscription';render()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-sm">💳 구독</button><button onclick="logout()" class="px-3 py-1 bg-gray-100 rounded text-sm">🚪</button></div></div>
         </div>
+        ${renderExpiryBanner()}
         <div class="mb-6 p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50 rounded-lg border border-indigo-100">
           <p class="text-sm text-gray-700 text-center">사회복지사, 제공인력 선생님들의 업무부담을 줄여드리기 위해 개발된 앱입니다.</p>
           <p class="text-sm text-gray-500 text-center mt-2">🙏 모든 선생님이 원활하게 사용하실 수 있도록, 하루 ${maxUsage}회 이내로 사용해 주시면 감사하겠습니다.</p>
