@@ -3353,9 +3353,9 @@ const getSetting = (key, fallback = '') => {
 
 const copyDeposit = (text) => {
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => showMsg('복사되었습니다: ' + text)).catch(() => showMsg('복사 실패. 직접 입력해주세요: ' + text));
+    navigator.clipboard.writeText(text).then(() => showMsg('복사되었습니다: ' + text, 'success')).catch(() => showMsg('복사 실패. 직접 입력해주세요: ' + text, 'info'));
   } else {
-    showMsg('직접 입력해주세요: ' + text);
+    showMsg('직접 입력해주세요: ' + text, 'info');
   }
 };
 
@@ -3441,7 +3441,7 @@ const submitDeposit = async (planType) => {
       return;
     }
     document.getElementById('depositModal')?.remove();
-    showMsg('입금 신청이 접수되었습니다.\n관리자 확인 후 구독이 활성화됩니다.');
+    showMsg('입금 신청이 접수되었습니다.\n관리자 확인 후 구독이 활성화됩니다.', 'success');
   } catch (err) {
     showMsg('서버 오류가 발생했습니다. 다시 시도해주세요.');
     if (btn) { btn.disabled = false; btn.textContent = '입금 완료했어요'; }
@@ -3458,7 +3458,7 @@ const approveDeposit = async (paymentId) => {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { showMsg(data.error || '처리에 실패했습니다.'); return; }
-    showMsg('구독이 활성화되었습니다.');
+    showMsg('구독이 활성화되었습니다.', 'success');
     state.adminStats = null;
     await loadData();
     render();
@@ -3475,7 +3475,7 @@ const rejectDeposit = async (paymentId) => {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { showMsg(data.error || '처리에 실패했습니다.'); return; }
-    showMsg('반려 처리되었습니다.');
+    showMsg('반려 처리되었습니다.', 'info');
     state.adminStats = null;
     render();
   } catch (err) { showMsg('서버 오류가 발생했습니다.'); }
