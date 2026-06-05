@@ -182,6 +182,116 @@ export default async function handler(req, res) {
       });
     }
 
+    // ====== 수동 입금 신청 (사용자) ======
+    // 포트원 미승인으로 계좌이체/카카오페이 입금 안내 방식 사용
+    if (action === 'requestDeposit') {
+      const user = authenticateRequest(req);
+      if (!user) return res.status(401).json({ error: '인증이 필요합니다.' });
+
+      const { planType, method, depositorName } = req.body;
+      if (!planType || !method) {
+        return res.status(400).json({ error: '요금제와 입금수단은 필수입니다.' });
+      }
+      if (!['bank_transfer', 'kakaopay'].includes(method)) {
+        return res.status(400).json({ error: '유효하지 않은 입금수단입니다.' });
+      }
+
+      // 요금제 조회 (금액 산정)
+      const { data: plan, error: planError } = await supabase
+        .from('plans').select('*').eq('id', planType).eq('is_active', true).single();
+      if (planError || !plan) {
+        return res.status(400).json({ error: '유효한 요금제를 찾을 수 없습니다.' });
+      }
+
+      // 이미 확인 대기중인 신청이 있으면 중복 방지
+      const { data: existingPending } = await supabase
+        .from('payments').select('id').eq('user_id', user.id).eq('status', 'pending').limit(1);
+      if (existingPending && existingPending.length > 0) {
+        return res.status(409).json({ error: '이미 확인 대기중인 입금 신청이 있습니다. 관리자 확인을 기다려주세요.' });
+      }
+
+      const now = new Date();
+      const paymentId = 'MANUAL-' + now.getTime() + '-' + Math.random().toString(36).slice(2, 8);
+      const { error: insErr } = await supabase.from('payments').insert([{
+        user_id: user.id,
+        payment_id: paymentId,
+        plan_id: plan.id,
+        amount: plan.price,
+        currency: 'KRW',
+        status: 'pending',
+        method,
+        depositor_name: depositorName || user.name || null,
+        requested_at: now.toISOString(),
+        pg_provider: 'manual',
+      }]);
+      if (insErr) throw insErr;
+
+      return res.status(200).json({
+        success: true,
+        message: '입금 신청이 접수되었습니다. 관리자 확인 후 구독이 활성화됩니다.',
+        amount: plan.price,
+        plan: plan.name,
+      });
+    }
+
+    // ====== 입금 확인 & 구독 활성화 (관리자) ======
+    if (action === 'approveDeposit') {
+      const admin = authenticateRequest(req);
+      if (!admin || admin.role !== 'admin') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+
+      const { paymentId } = req.body; // payments 테이블의 id
+      if (!paymentId) return res.status(400).json({ error: 'paymentId는 필수입니다.' });
+
+      const { data: pay } = await supabase
+        .from('payments').select('*').eq('id', paymentId).eq('status', 'pending').maybeSingle();
+      if (!pay) return res.status(404).json({ error: '대기중인 입금 신청을 찾을 수 없습니다.' });
+
+      const { data: plan } = await supabase.from('plans').select('*').eq('id', pay.plan_id).maybeSingle();
+      if (!plan) return res.status(400).json({ error: '요금제 정보를 찾을 수 없습니다.' });
+
+      const now = new Date();
+      const endDate = new Date(now);
+      if (plan.interval === 'year') endDate.setFullYear(endDate.getFullYear() + 1);
+      else endDate.setMonth(endDate.getMonth() + 1);
+      const subscriptionEnd = endDate.toISOString().split('T')[0];
+
+      // 기존 활성/체험 구독 종료 후 새 구독 활성화
+      await supabase.from('subscriptions')
+        .update({ status: 'cancelled', cancelled_at: now.toISOString() })
+        .eq('user_id', pay.user_id).in('status', ['trial', 'active']);
+
+      const { error: subErr } = await supabase.from('subscriptions').insert([{
+        user_id: pay.user_id, plan_id: plan.id, status: 'active',
+        start_date: now.toISOString().split('T')[0], end_date: subscriptionEnd,
+      }]);
+      if (subErr) throw subErr;
+
+      await supabase.from('payments').update({
+        status: 'confirmed', paid_at: now.toISOString(),
+        confirmed_at: now.toISOString(), confirmed_by: admin.id,
+      }).eq('id', pay.id);
+
+      await supabase.from('users').update({ subscription_end: subscriptionEnd }).eq('id', pay.user_id);
+
+      return res.status(200).json({ success: true, subscription_end: subscriptionEnd, user_id: pay.user_id });
+    }
+
+    // ====== 입금 신청 반려 (관리자) ======
+    if (action === 'rejectDeposit') {
+      const admin = authenticateRequest(req);
+      if (!admin || admin.role !== 'admin') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+
+      const { paymentId } = req.body;
+      if (!paymentId) return res.status(400).json({ error: 'paymentId는 필수입니다.' });
+
+      const { error } = await supabase.from('payments')
+        .update({ status: 'rejected', confirmed_at: new Date().toISOString(), confirmed_by: admin.id })
+        .eq('id', paymentId).eq('status', 'pending');
+      if (error) throw error;
+
+      return res.status(200).json({ success: true });
+    }
+
     return res.status(400).json({ error: 'Invalid action' });
 
   } catch (error) {
