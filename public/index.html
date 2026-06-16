@@ -1675,8 +1675,7 @@ const renderSubscription = () => {
     const _trial = { label: '체험 중', color: 'blue', icon: '🔵', bg: 'from-blue-50 to-blue-100', border: 'border-blue-200' };
     const _active = { label: '구독 중', color: 'green', icon: '🟢', bg: 'from-green-50 to-green-100', border: 'border-green-200' };
     if (_st === 'trial') return _trial;
-    if (_st === 'active') return _active;
-    return (!_st && subDaysLeft <= 10) ? _trial : _active;
+    return _active;  // active / 해지-미래 / 조회실패 등 잔여기간이 있으면 구독중
   };
   const status = getSubStatus();
   const dDayText = subDaysLeft !== null ? (subDaysLeft <= 0 ? 'D-Day' : `D-${subDaysLeft}`) : '-';
@@ -1814,8 +1813,7 @@ const renderMyPage = () => {
     const _trial = { label: '체험 중', icon: '🔵', cls: 'bg-blue-100 text-blue-700' };
     const _active = { label: '구독 중', icon: '🟢', cls: 'bg-green-100 text-green-700' };
     if (_st === 'trial') return _trial;
-    if (_st === 'active') return _active;
-    return (!_st && subDaysLeft <= 10) ? _trial : _active;
+    return _active;  // active / 해지-미래 / 조회실패 등 잔여기간이 있으면 구독중
   };
   const status = getSubStatus();
   const dDayText = subDaysLeft !== null ? (subDaysLeft <= 0 ? 'D-Day' : `D-${subDaysLeft}`) : '-';
