@@ -249,22 +249,19 @@ export default async function handler(req, res) {
       const { data: plan } = await supabase.from('plans').select('*').eq('id', pay.plan_id).maybeSingle();
       if (!plan) return res.status(400).json({ error: '요금제 정보를 찾을 수 없습니다.' });
 
-      // 기존 활성/체험 구독의 만료일 확인 (남은 기간이 있으면 그 날짜부터 연장)
-      const { data: currentSub } = await supabase
-        .from('subscriptions')
-        .select('end_date')
-        .eq('user_id', pay.user_id)
-        .in('status', ['trial', 'active'])
-        .order('end_date', { ascending: false })
-        .limit(1)
+      // 현재 만료일(화면에 표시되는 users.subscription_end)을 기준으로 연장
+      // ※ subscriptions 테이블의 잔존 active 레코드가 아니라, 사용자에게 보이는 값을 신뢰 (불일치 방지)
+      const { data: userRow } = await supabase
+        .from('users')
+        .select('subscription_end')
+        .eq('id', pay.user_id)
         .maybeSingle();
 
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
+      const curEnd = userRow && userRow.subscription_end;
       // 구독이 아직 남아있으면 기존 만료일 기준, 만료/없으면 오늘 기준으로 기간 추가
-      const baseStr = (currentSub && currentSub.end_date && currentSub.end_date > todayStr)
-        ? currentSub.end_date
-        : todayStr;
+      const baseStr = (curEnd && curEnd > todayStr) ? curEnd : todayStr;
       const endDate = new Date(baseStr + 'T00:00:00Z');
       if (plan.interval === 'year') endDate.setUTCFullYear(endDate.getUTCFullYear() + 1);
       else endDate.setUTCMonth(endDate.getUTCMonth() + 1);
