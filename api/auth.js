@@ -54,17 +54,12 @@ export default async function handler(req, res) {
         await supabase.from('users').update({ password: hashed }).eq('id', id);
       }
 
-      // 구독 만료 체크 (관리자는 제외)
-      if (user.role !== 'admin' && user.subscription_end) {
-        const expireDate = new Date(user.subscription_end);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (expireDate < today) {
-          return res.status(403).json({ error: 'subscription_expired', subscription_end: user.subscription_end });
-        }
-      }
-
+      // 구독이 만료되어도 로그인은 허용하고, 플래그로 요금제 안내 (소셜 로그인과 동일 동작)
+      // 로그인 자체를 막으면 구독 연장을 할 수 없으므로 반드시 통과시킨다
       const token = createToken(user);
+      if (checkSubscriptionExpired(user)) {
+        return res.status(200).json({ token, user: sanitizeUser(user), subscription_expired: true });
+      }
       return res.status(200).json({ token, user: sanitizeUser(user) });
     }
 
@@ -135,17 +130,11 @@ export default async function handler(req, res) {
         await supabase.from('users').update({ password: hashed }).eq('id', user.id);
       }
 
-      // 구독 만료 체크 (관리자 제외)
-      if (user.role !== 'admin' && user.subscription_end) {
-        const expireDate = new Date(user.subscription_end);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (expireDate < today) {
-          return res.status(403).json({ error: 'subscription_expired', subscription_end: user.subscription_end });
-        }
-      }
-
+      // 구독이 만료되어도 로그인은 허용하고, 플래그로 요금제 안내 (소셜 로그인과 동일 동작)
       const token = createToken(user);
+      if (checkSubscriptionExpired(user)) {
+        return res.status(200).json({ token, user: sanitizeUser(user), subscription_expired: true });
+      }
       return res.status(200).json({ token, user: sanitizeUser(user) });
     }
 
