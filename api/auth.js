@@ -317,7 +317,7 @@ export default async function handler(req, res) {
 
       // 이메일이 없는 레거시 사용자
       if (!user.email) {
-        return res.status(400).json({ error: '등록된 이메일이 없습니다. 관리자에게 문의해주세요.\n📞 070-8065-0429' });
+        return res.status(400).json({ error: '등록된 이메일이 없습니다. 관리자에게 문의해주세요.\n📞 010-4405-6884' });
       }
 
       // 비밀번호 재설정 토큰 생성 (30분 만료)
